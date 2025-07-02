@@ -15,6 +15,10 @@ namespace WebChattingServer
                     ["application/octet-stream"]);
             });
             var app = builder.Build();
+            app.UseRouting(); // Ãß°¡
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();
             app.MapGet("/", () => "Hello World!");
             app.MapHub<ChatHub>("/chat");
             app.Run();

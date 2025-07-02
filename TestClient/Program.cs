@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.Http.Connections;
+using Microsoft.AspNetCore.SignalR.Client;
 using System.Threading.Tasks;
 
 namespace TestClient
@@ -8,15 +9,19 @@ namespace TestClient
         static async Task Main(string[] args)
         {
             HubConnection connection = new HubConnectionBuilder()
-                .WithUrl("https://localhost:7146/chat")
-                .WithAutomaticReconnect()
-                .Build();
+                .WithUrl("https://localhost:7146/chat", options =>
+                {
+                    options.Transports = HttpTransportType.WebSockets;
+                }).WithAutomaticReconnect()
+                .Build();   
             connection.On<string,string>("ReceiveMessage", HandleChat);
             await connection.StartAsync();
             while (true)
             {
-                string input = Console.ReadLine();
-                await connection.SendAsync("SendMessage", "Dewmo", input);
+                string? input = Console.ReadLine();
+                if (input == null)
+                    continue;
+                await connection.SendAsync("SendMessage", (string)"Dewmo", (string)input);
             }
         }
 
