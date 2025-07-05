@@ -14,15 +14,15 @@ namespace WebChattingServer.Hubs
             await base.OnConnectedAsync();
         }
 
-        public async Task SendMessage(string user, string message)
+        public async Task SendMessage(string? user, string? message)
         {
             Console.WriteLine($"{user}: {message}");
             await Clients.All.SendAsync("ReceiveMessage", user, message);
         }
-        public async Task Echo(string msg)
+        public async Task Echo()
         {
-            Console.WriteLine($"[Echo]: {msg}");
-            await Clients.Caller.SendAsync("ReceiveMessage", "Server", msg);
+            Console.WriteLine($"[Echo]: ");
+            await Clients.Caller.SendAsync("ReceiveMessage", "Server", "ASDDS");
         }
     }
 }
