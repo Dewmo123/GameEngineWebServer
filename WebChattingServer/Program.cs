@@ -8,19 +8,15 @@ namespace WebChattingServer
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            builder.Services.AddSignalR();
-            builder.Services.AddResponseCompression(opts =>
-            {
-                opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-                    ["application/octet-stream"]);
-            });
-            var app = builder.Build();
-            app.UseRouting(); // Ãß°¡
-            app.UseHttpsRedirection();
 
-            app.UseAuthorization();
-            app.MapGet("/", () => "Hello World!");
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
+
+            builder.Services.AddSignalR();
+            var app = builder.Build();
+
             app.MapHub<ChatHub>("/chat");
+
             app.Run();
         }
     }
