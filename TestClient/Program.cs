@@ -20,6 +20,7 @@ namespace TestClient
                 if (string.IsNullOrEmpty(input))
                     continue;
                 await connection.SendAsync("SendMessage", (string)"Dewmo", (string)input);
+                await connection.SendAsync("Echo");
             }
         }
 
