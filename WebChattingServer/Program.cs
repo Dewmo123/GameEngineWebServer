@@ -1,3 +1,5 @@
+using BLL.Services;
+using DAL.Repositories;
 using Microsoft.AspNetCore.ResponseCompression;
 using WebChattingServer.Hubs;
 
@@ -15,6 +17,11 @@ namespace WebChattingServer
                 opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
                     ["application/octet-stream"]);
             });
+            string? connection = builder.Configuration.GetConnectionString("DefaultConnection");
+            if (string.IsNullOrEmpty(connection))
+                throw new NullReferenceException();
+            builder.Services.AddTransient(provider=>new AuthorizeRepository(connection));
+            
             var app = builder.Build();
             app.UseRouting(); // Ãß°¡
             app.UseAuthorization();
