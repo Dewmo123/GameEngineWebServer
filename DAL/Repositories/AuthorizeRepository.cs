@@ -3,7 +3,7 @@ using MySql.Data.MySqlClient;
 
 namespace DAL.Repositories
 {
-    public class AuthorizeRepository : IAuthorizeReporitory
+    public class AuthorizeRepository : IAuthorizeRepository
     {
         private string _connectionString;
         public AuthorizeRepository(string conn)
@@ -14,6 +14,7 @@ namespace DAL.Repositories
         {
             using (MySqlConnection connection = new(_connectionString))
             {
+                await connection.OpenAsync();
                 MySqlCommand command = connection.CreateCommand();
                 command.CommandText = $"SELECT `role` FROM user_role_data WHERE id = @id";
                 command.Parameters.AddWithValue("@id", id);
@@ -21,7 +22,8 @@ namespace DAL.Repositories
                 List<UserRoleVO> roles = new();
                 while (await table.ReadAsync())
                 {
-                    UserRoleVO role = new UserRoleVO() { Role = (Role)table.GetInt32(table.GetOrdinal("role")) };
+                    string roleStr = table.GetString(table.GetOrdinal("role"));
+                    UserRoleVO role = new UserRoleVO() { Role = Enum.Parse<Role>(roleStr) };
                     roles.Add(role);
                 }
                 return roles;
@@ -32,6 +34,7 @@ namespace DAL.Repositories
         {
             using (MySqlConnection connection = new(_connectionString))
             {
+                await connection.OpenAsync();
                 MySqlCommand command = connection.CreateCommand();
                 command.CommandText = $"SELECT * FROM user_login_data WHERE user_id = @userId AND `password` = sha2(@password,256)";
                 command.Parameters.AddWithValue("@password", password);
