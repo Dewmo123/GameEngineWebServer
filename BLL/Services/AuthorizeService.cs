@@ -1,31 +1,33 @@
 ﻿using AutoMapper;
 using BLL.DTOs;
-using DAL.Repositories;
+using BLL.UoW;
 using DAL.VOs;
 
 namespace BLL.Services
 {
     public class AuthorizeService : IAuthorizeService
     {
-        IAuthorizeRepository _repository;
         IMapper _mapper;
-        public AuthorizeService(IMapper mapper,IAuthorizeRepository repository)
+        public AuthorizeService(IMapper mapper)
         {
-            _repository = repository;
             _mapper = mapper;
         }
         public async Task<LoginUserDTO?> LogIn(LoginDTO loginDTO)
         {
-            LoginVO? login = await _repository.Login(loginDTO.UserId, loginDTO.Password);
-            if (login == null)
+            await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
             {
-                Console.WriteLine("Wrong user");
-                return null;
+                LoginVO? login = await uow.Auth.Login(loginDTO.UserId, loginDTO.Password);
+                if (login == null)
+                {
+                    Console.WriteLine("Wrong user");
+                    return null;
+                }
+                Console.WriteLine(loginDTO.UserId);
+                LoginUserDTO user = _mapper.Map<LoginVO, LoginUserDTO>(login);
+                List<UserRoleVO> roles = await uow.Auth.GetUserRoles(login.id);
+                user.Roles = roles.Select(item => item.Role).ToList();
+                return user;
             }
-            LoginUserDTO user = _mapper.Map<LoginVO, LoginUserDTO>(login);
-            List<UserRoleVO> roles = await _repository.GetUserRoles(login.Id);
-            user.Roles = roles.Select(item => item.Role).ToList();
-            return user;
         }
 
         public Task SignUp(LoginDTO loginDTO)

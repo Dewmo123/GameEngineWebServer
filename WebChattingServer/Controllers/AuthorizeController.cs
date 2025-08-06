@@ -23,10 +23,11 @@ namespace WebChattingServer.Controllers
             LoginUserDTO? user = await _authorizeService.LogIn(loginDTO);
             if (user != null)
             {
+                Console.WriteLine(user.user_id);
                 var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.UserId),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                    new Claim(ClaimTypes.Name, user.user_id),
+                    new Claim(ClaimTypes.NameIdentifier, user.id.ToString())
                 };
                 user.Roles.ForEach(role => claims.Add(new Claim(ClaimTypes.Role, role.ToString())));
 
@@ -35,7 +36,7 @@ namespace WebChattingServer.Controllers
 
                 await HttpContext.SignInAsync("UserKey", new ClaimsPrincipal(claimsIdentity), authProperties);
 
-                return Ok(new { Message = "Login successful", UserId = user.UserId });
+                return Ok(new { Message = "Login successful", UserId = user.user_id });
             }
             else
             {

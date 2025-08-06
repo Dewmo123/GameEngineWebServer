@@ -1,4 +1,5 @@
 ﻿using BLL.DTOs;
+using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -23,6 +24,20 @@ namespace TestClient
             HttpResponseMessage msg = await client.PostAsync(url, content);
             string response = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(response);
+            var connection = new HubConnectionBuilder()
+                .WithUrl($"{_connection}/chat")
+                .WithAutomaticReconnect()
+                .Build();
+            connection.On<string, string>("ReceviveMessage", (user, message) =>
+            {
+                Console.WriteLine($"{user}: {message}");
+            });
+            await connection.StartAsync();
+            while (true)
+            {
+                var asd = Console.ReadLine();
+                await connection.SendAsync("SendMessage", asd);
+            }
         }
     }
 }

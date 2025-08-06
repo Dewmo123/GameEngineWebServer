@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 
 namespace WebChattingServer.Hubs
 {
-    [Authorize]
     public class ChatHub : Hub
     {
         private ConcurrentDictionary<string, string> _nickNames;
@@ -22,12 +21,10 @@ namespace WebChattingServer.Hubs
             Console.WriteLine($"[Disconnected] {Context.ConnectionId}");
             return base.OnDisconnectedAsync(exception);
         }
-        public void SetNickName(string? nickName)
+        public async Task SendMessage(string message)
         {
-            if (string.IsNullOrEmpty(nickName))
-                return;
-            _nickNames[Context.ConnectionId] = nickName;
-            Console.WriteLine($"[SetNickName] {Context.ConnectionId} : {nickName}");
+            Console.WriteLine($"{Context.User.Identity.Name}:{message}");
+            await Clients.All.SendAsync("ReceiveMessage", Context.User.Identity.Name,message);
         }
     }
 }

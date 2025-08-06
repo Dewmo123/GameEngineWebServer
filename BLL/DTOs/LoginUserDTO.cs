@@ -4,8 +4,8 @@ namespace BLL.DTOs
 {
     public record class LoginUserDTO
     {
-        public int Id { get; set; }
-        public string? UserId { get; set; }
+        public int id { get; set; }
+        public string? user_id { get; set; }
         public List<Role> Roles { get; set; }
     }
     public record class LoginDTO

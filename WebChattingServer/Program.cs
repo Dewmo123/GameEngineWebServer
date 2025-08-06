@@ -1,5 +1,6 @@
 using BLL.DTOs;
 using BLL.Services;
+using BLL.UoW;
 using DAL.Repositories;
 using DAL.VOs;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -19,14 +20,18 @@ namespace WebChattingServer
                 {
                     options.Cookie.Name = "UserCookie";
                     options.LoginPath = "/authorize/login";
-                    options.AccessDeniedPath = "/authorize/accessDenied";
+                    options.Cookie.SameSite = SameSiteMode.None;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                     options.ExpireTimeSpan = TimeSpan.FromSeconds(3600 * 24 * 7);
                 });
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("IsAdmin",
                     policy => policy.RequireAssertion(context =>
-                    context.User.IsInRole("ADMIN")));
+                    context.User.IsInRole("Admin")));
+                options.AddPolicy("User",
+                    policy => policy.RequireAssertion(context =>
+                    context.User.IsInRole("User")));
             });
             builder.Services.AddAutoMapper(config =>
             {
@@ -39,7 +44,6 @@ namespace WebChattingServer
             if (string.IsNullOrEmpty(connection))
                 throw new NullReferenceException();
             builder.Services.AddTransient<IAuthorizeService,AuthorizeService>();
-            builder.Services.AddTransient<IAuthorizeRepository,AuthorizeRepository>(provider=>new AuthorizeRepository(connection));
             builder.Services.AddControllers();
             var app = builder.Build();
             app.UseRouting();
@@ -52,7 +56,7 @@ namespace WebChattingServer
             });
             app.MapControllers();
             //app.MapControllerRoute("default", "{controller=authorize}/{action=test}");
-            //app.MapHub<ChatHub>("/chat");
+            app.MapHub<ChatHub>("/chat");
             app.Run();
         }
     }
