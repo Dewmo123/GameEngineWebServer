@@ -33,7 +33,6 @@ namespace WebChattingServer.Controllers
 
                 var claimsIdentity = new ClaimsIdentity(claims, "UserKey");
                 var authProperties = new AuthenticationProperties { IsPersistent = true };
-
                 await HttpContext.SignInAsync("UserKey", new ClaimsPrincipal(claimsIdentity), authProperties);
 
                 return Ok(new { Message = "Login successful", UserId = user.user_id });

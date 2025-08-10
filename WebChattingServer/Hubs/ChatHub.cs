@@ -6,11 +6,6 @@ namespace WebChattingServer.Hubs
 {
     public class ChatHub : Hub
     {
-        private ConcurrentDictionary<string, string> _nickNames;
-        public ChatHub()
-        {
-            _nickNames = new();
-        }
         public override async Task OnConnectedAsync()
         {
             Console.WriteLine($"[Connected] {Context.ConnectionId}");
