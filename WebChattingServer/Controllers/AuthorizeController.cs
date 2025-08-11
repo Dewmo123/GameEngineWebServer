@@ -47,7 +47,9 @@ namespace WebChattingServer.Controllers
         [HttpGet("test")]
         public string Test()
         {
-            return "ASDASD, Test successful!";
+            string n = HttpContext.User.Identity.Name;
+            Console.WriteLine(n);
+            return n;
         }
     }
 }

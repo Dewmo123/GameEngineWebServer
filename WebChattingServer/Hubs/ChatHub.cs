@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 
 namespace WebChattingServer.Hubs
 {
+    [Authorize]
     public class ChatHub : Hub
     {
         public override async Task OnConnectedAsync()

@@ -1,6 +1,7 @@
 ﻿using BLL.DTOs;
 using Microsoft.AspNetCore.SignalR.Client;
 using Newtonsoft.Json;
+using System.Net;
 using System.Text;
 
 namespace TestClient
@@ -12,7 +13,9 @@ namespace TestClient
         static async Task Main(string[] args)
         {
             Thread.Sleep(1231);
-            HttpClient client = new();
+            var cookieContainer = new CookieContainer();//웹소켓이랑 HTTP랑 쿠키를 안맞춰주면 서로 다른걸로 인식함
+            var handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+            HttpClient client = new(handler);
             string url = $"{_connection}/authorize/login";
             LoginDTO dto = new()
             {
@@ -25,9 +28,15 @@ namespace TestClient
             string response = await msg.Content.ReadAsStringAsync();
             Console.WriteLine(response);
             var connection = new HubConnectionBuilder()
-                .WithUrl($"{_connection}/chat")
+                .WithUrl($"{_connection}/chat", options =>
+                {
+                    options.Cookies = cookieContainer;//``
+                })
                 .WithAutomaticReconnect()
                 .Build();
+            Thread.Sleep(1000);
+            var m = await client.GetAsync($"{_connection}/authorize/test");
+            Console.WriteLine(await m.Content.ReadAsStringAsync());
             connection.On<string, string>("ReceviveMessage", (user, message) =>
             {
                 Console.WriteLine($"{user}: {message}");
