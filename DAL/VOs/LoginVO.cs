@@ -4,14 +4,14 @@ namespace DAL.VOs
 {
     public enum Role
     {
-        None,
+        None = 1,
         User,
         Admin
     }
     public record class LoginVO
     {
-        public int id { get; set; }
-        public string? user_id { get; set; }
+        public int Id { get; set; }
+        public string? UserId { get; set; }
     }
     public record class UserRoleVO
     {

@@ -4,7 +4,7 @@ namespace DAL.Repositories
 {
     public interface IAuthorizeRepository
     {
-        Task<List<UserRoleVO>> GetUserRoles(int id);
-        Task<LoginVO?> Login(string id,string password);
+        Task<LoginVO?> GetUser(string id,string password);
+        Task<int> AddUser(string id, string password);
     }
 }

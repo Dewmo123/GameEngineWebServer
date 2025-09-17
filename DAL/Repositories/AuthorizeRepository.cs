@@ -4,26 +4,22 @@ using Dapper;
 
 namespace DAL.Repositories
 {
-    public class AuthorizeRepository : IAuthorizeRepository
+    public class AuthorizeRepository : Repository,IAuthorizeRepository
     {
-        private MySqlConnection _connection;
-        private MySqlTransaction _transaction;
-        public AuthorizeRepository(MySqlConnection connection, MySqlTransaction transaction)
+        public AuthorizeRepository(MySqlConnection connection, MySqlTransaction transaction) : base(connection, transaction)
         {
-            _connection = connection;
-            _transaction = transaction;
-        }
-        public async Task<List<UserRoleVO>> GetUserRoles(int id)
-        {
-            string query = "SELECT `role` FROM user_role_data WHERE id = @id";
-            var vos = await _connection.QueryAsync<UserRoleVO>(sql: query,new { id}, transaction: _transaction);
-            return vos.ToList();
         }
 
-        public async Task<LoginVO?> Login(string userId, string password)
+        public async Task<LoginVO?> GetUser(string userId, string password)
         {
-            string query = "SELECT * FROM user_login_data WHERE user_id = @userId AND `password` = sha2(@password,256)";
+            string query = "SELECT * FROM LoginData WHERE UserId = @userId AND `Password` = sha2(@password,256)";
             return await _connection.QueryFirstOrDefaultAsync<LoginVO>(query, new { userId, password }, _transaction);
+        }
+
+        public async Task<int> AddUser(string id, string password)
+        {
+            string query = "INSERT INTO LoginData (UserId, `Password`)VALUES (@id,sha2(@password,256))";
+            return await _connection.ExecuteScalarAsync<int>(query, new { id, password });
         }
     }
 }
