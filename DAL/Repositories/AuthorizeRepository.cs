@@ -18,7 +18,7 @@ namespace DAL.Repositories
 
         public async Task<int> AddUser(string id, string password)
         {
-            string query = "INSERT INTO LoginData (UserId, `Password`)VALUES (@id,sha2(@password,256))";
+            string query = "INSERT INTO LoginData (UserId, `Password`)VALUES (@id,sha2(@password,256));SELECT LAST_INSERT_ID()";
             return await _connection.ExecuteScalarAsync<int>(query, new { id, password });
         }
     }
