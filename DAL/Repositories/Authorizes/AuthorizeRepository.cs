@@ -2,7 +2,7 @@
 using MySql.Data.MySqlClient;
 using Dapper;
 
-namespace DAL.Repositories
+namespace DAL.Repositories.Authorizes
 {
     public class AuthorizeRepository : Repository,IAuthorizeRepository
     {

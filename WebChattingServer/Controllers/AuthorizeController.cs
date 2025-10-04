@@ -1,5 +1,5 @@
 ﻿using BLL.DTOs;
-using BLL.Services;
+using BLL.Services.Authorizes;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -23,7 +23,6 @@ namespace WebChattingServer.Controllers
             LoginUserDTO? user = await _authorizeService.LogIn(loginDTO);
             if (user != null)
             {
-                Console.WriteLine(user.UserId);
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.UserId),
@@ -34,7 +33,6 @@ namespace WebChattingServer.Controllers
                 var claimsIdentity = new ClaimsIdentity(claims, "UserKey");
                 var authProperties = new AuthenticationProperties { IsPersistent = true };
                 await HttpContext.SignInAsync("UserKey", new ClaimsPrincipal(claimsIdentity), authProperties);
-
                 return Ok(new { Message = "Login successful", UserId = user.UserId });
             }
             else
@@ -50,13 +48,6 @@ namespace WebChattingServer.Controllers
             bool success = await _authorizeService.SignUp(createUser);
             return success ? Created("", new { Message = "SignUp success" })
                 : BadRequest(new { Message = "Duplicate User" });
-        }
-        [HttpGet("test")]
-        public string Test()
-        {
-            string n = HttpContext.User.Identity.Name;
-            Console.WriteLine(n);
-            return n;
         }
     }
 }

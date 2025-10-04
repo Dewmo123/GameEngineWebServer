@@ -1,4 +1,6 @@
 ﻿using DAL.Repositories;
+using DAL.Repositories.Authorizes;
+using DAL.Repositories.Players;
 using MySql.Data.MySqlClient;
 
 namespace BLL.UoW
@@ -8,8 +10,10 @@ namespace BLL.UoW
         static string connectionString = "Server=127.0.0.1;Port=3306;Database=summer_db;Uid=root;Pwd=1652;Pooling=true";
         private IAuthorizeRepository? _auth;
         private IRoleRepository? _role;
+        private IStatRepository? _stat;
         public IAuthorizeRepository Auth => _auth ??= new AuthorizeRepository(_connection, _transaction);
         public IRoleRepository Role => _role ??= new RoleRepository(_connection, _transaction);
+        public IStatRepository Stat => _stat ??= new StatRepository(_connection, _transaction);
 
         private MySqlConnection _connection;
         private MySqlTransaction _transaction;

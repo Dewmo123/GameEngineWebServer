@@ -3,7 +3,7 @@ using BLL.DTOs;
 using BLL.UoW;
 using DAL.VOs;
 
-namespace BLL.Services
+namespace BLL.Services.Authorizes
 {
     public class AuthorizeService : IAuthorizeService
     {
@@ -38,7 +38,6 @@ namespace BLL.Services
                 if (loginVO != null)
                     return false;
                 int id = await uow.Auth.AddUser(createUserDTO.UserId, createUserDTO.Password);
-                Console.WriteLine(id);//0 반환함 고쳐야됨요
                 int affected = await uow.Role.AddRole(id, Role.User);
                 if (affected == 0)
                 {

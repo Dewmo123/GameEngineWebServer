@@ -15,6 +15,6 @@ namespace DAL.VOs
     }
     public record class UserRoleVO
     {
-        public Role Role;
+        public Role Role { get; set; }
     }
 }

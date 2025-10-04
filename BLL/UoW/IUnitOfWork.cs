@@ -1,4 +1,5 @@
-﻿using DAL.Repositories;
+﻿using DAL.Repositories.Authorizes;
+using DAL.Repositories.Players;
 
 namespace BLL.UoW
 {
@@ -6,6 +7,7 @@ namespace BLL.UoW
     {
         IAuthorizeRepository Auth { get; }
         IRoleRepository Role { get; }
+        IStatRepository Stat { get; }
         Task CommitAsync();
         Task RollbackAsync();
     }

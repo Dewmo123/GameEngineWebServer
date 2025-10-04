@@ -1,6 +1,6 @@
 ﻿using BLL.DTOs;
 
-namespace BLL.Services
+namespace BLL.Services.Authorizes
 {
     public interface IAuthorizeService
     {
