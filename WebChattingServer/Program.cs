@@ -1,3 +1,4 @@
+using BLL.Caching;
 using BLL.DTOs;
 using BLL.Services.Authorizes;
 using BLL.Services.Players;
@@ -38,7 +39,7 @@ namespace WebChattingServer
             string? connection = builder.Configuration.GetConnectionString("MySql");
             if (string.IsNullOrEmpty(connection))
                 throw new NullReferenceException();
-            AddTransients(builder);
+            AdClasses(builder);
             builder.Services.AddControllers();
             builder.WebHost.ConfigureKestrel(options =>
             {
@@ -62,10 +63,11 @@ namespace WebChattingServer
             app.Run();
         }
 
-        private static void AddTransients(WebApplicationBuilder builder)
+        private static void AdClasses(WebApplicationBuilder builder)
         {
             builder.Services.AddTransient<IAuthorizeService, AuthorizeService>();
             builder.Services.AddTransient<IPlayerService, PlayerService>();
+            builder.Services.AddSingleton<IPlayerManager, PlayerManager>();
         }
 
         private static void SetAuthorizeAndAuthentification(WebApplicationBuilder builder)

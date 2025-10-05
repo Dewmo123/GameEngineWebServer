@@ -6,5 +6,6 @@ namespace DAL.Repositories.Players
     {
         Task<List<StatVO>> GetStatsAsync(int id);
         Task<int> AddStatAsync(int id, StatType statType,int level);
+        Task<int> UpdateStatAsync(int id, StatType statType, int level);
     }
 }

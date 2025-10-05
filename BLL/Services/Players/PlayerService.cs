@@ -23,12 +23,12 @@ namespace BLL.Services.Players
             await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
             {
                 PlayerDTO playerDTO = new();
-                await AddStats(id, uow, playerDTO);
+                await GetOrAddStats(id, uow, playerDTO);
                 return playerDTO;
             }
         }
 
-        private async Task AddStats(int id, IUnitOfWork uow, PlayerDTO playerDTO)
+        private async Task GetOrAddStats(int id, IUnitOfWork uow, PlayerDTO playerDTO)
         {
             List<StatVO> statVOs = await uow.Stat.GetStatsAsync(id);
             playerDTO.Stats = statVOs.ToDictionary(item => item.StatType, item => item.Level);
