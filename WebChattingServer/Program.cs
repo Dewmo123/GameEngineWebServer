@@ -2,11 +2,7 @@ using BLL.Caching;
 using BLL.DTOs;
 using BLL.Services.Authorizes;
 using BLL.Services.Players;
-using BLL.UoW;
-using DAL.Repositories;
 using DAL.VOs;
-using Microsoft.AspNetCore.ResponseCompression;
-using WebChattingServer.Controllers;
 using WebChattingServer.Hubs;
 
 namespace WebChattingServer

@@ -10,7 +10,7 @@ namespace DAL.Repositories.Players
         {
         }
 
-        public async Task<int> AddGoods(int id,GoodsType goodsType, int amount)
+        public async Task<int> AddGoodsAsync(int id,GoodsType goodsType, int amount)
         {
             string query = "INSERT INTO PlayerGoods (Id,GoodsType,Amount) VALUES (@id, @goodsType,@amount)";
             return await _connection.ExecuteAsync(sql: query, new { id, goodsType, amount });

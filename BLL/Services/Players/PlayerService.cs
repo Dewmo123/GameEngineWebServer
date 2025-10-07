@@ -51,7 +51,19 @@ namespace BLL.Services.Players
         private async Task GetOrAddGoods(int id, IUnitOfWork uow, PlayerDTO playerDTO)
         {
             List<GoodsVO> goods = await uow.Goods.GetAllGoods(id);
-
+            playerDTO.Goods = goods.ToDictionary(item => item.GoodsType, item => item.Amount);
+            foreach (var item in defaultGoods)
+                if (!playerDTO.Goods.ContainsKey(item.Key))
+                {
+                    playerDTO.Goods.Add(item.Key, item.Value);
+                    int affected = await uow.Goods.AddGoodsAsync(id, item.Key, item.Value);
+                    if (affected != 1)
+                    {
+                        Console.WriteLine("Rollback");
+                        await uow.RollbackAsync();
+                        return;
+                    }
+                }
         }
     }
 }

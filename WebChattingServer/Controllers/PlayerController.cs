@@ -33,7 +33,7 @@ namespace WebChattingServer.Controllers
             }
             return NoContent();
         }
-        [HttpGet("log-out")]
+        [HttpDelete("log-out")]
         public async Task LogOut()
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
