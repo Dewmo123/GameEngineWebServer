@@ -8,6 +8,7 @@ namespace BLL.UoW
         IAuthorizeRepository Auth { get; }
         IRoleRepository Role { get; }
         IStatRepository Stat { get; }
+        IGoodsRepository Goods { get; }
         Task CommitAsync();
         Task RollbackAsync();
     }

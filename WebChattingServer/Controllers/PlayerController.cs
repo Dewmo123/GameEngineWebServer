@@ -1,6 +1,7 @@
 ﻿using BLL.Caching;
 using BLL.DTOs;
 using BLL.Services.Players;
+using DAL.VOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -23,7 +24,6 @@ namespace WebChattingServer.Controllers
         public async Task<ActionResult<PlayerDTO?>> GetPlayerInfos()
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine(id);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
                 PlayerDTO? playerInfo = await _playerService.GetPlayerInfos(val);
@@ -33,13 +33,31 @@ namespace WebChattingServer.Controllers
             }
             return NoContent();
         }
+        [HttpGet("log-out")]
         public async Task LogOut()
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine(id);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
                 await _playerManager.RemovePlayer(val);
+            }
+        }
+        [HttpPost("stat-up")]
+        public void StatLevelUp(StatDTO statDTO)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
+            {
+                _playerManager.GetPlayer(val).LevelUpStat(statDTO.StatType, statDTO.Level);
+            }
+        }
+        [HttpPost("goods-up")]
+        public void GoodsLevelUp(GoodsDTO goodsDTO)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
+            {
+                _playerManager.GetPlayer(val).AddGoods(goodsDTO.GoodsType, goodsDTO.Amount);
             }
         }
     }

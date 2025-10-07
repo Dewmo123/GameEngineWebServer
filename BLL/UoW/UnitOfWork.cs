@@ -11,9 +11,11 @@ namespace BLL.UoW
         private IAuthorizeRepository? _auth;
         private IRoleRepository? _role;
         private IStatRepository? _stat;
+        private IGoodsRepository? _goods;
         public IAuthorizeRepository Auth => _auth ??= new AuthorizeRepository(_connection, _transaction);
         public IRoleRepository Role => _role ??= new RoleRepository(_connection, _transaction);
         public IStatRepository Stat => _stat ??= new StatRepository(_connection, _transaction);
+        public IGoodsRepository Goods => _goods ??= new GoodsRepository(_connection, _transaction);
 
         private MySqlConnection _connection;
         private MySqlTransaction _transaction;

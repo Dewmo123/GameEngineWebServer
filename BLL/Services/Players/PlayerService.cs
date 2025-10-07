@@ -13,6 +13,9 @@ namespace BLL.Services.Players
             {StatType.AttackPower,0 },
             {StatType.AttackSpeed,0 },
             {StatType.Health,0 },
+        }; private static readonly Dictionary<GoodsType, int> defaultGoods = new()
+        {
+            {GoodsType.Gold, 0 },
         };
         public PlayerService(IMapper mapper)
         {
@@ -24,6 +27,7 @@ namespace BLL.Services.Players
             {
                 PlayerDTO playerDTO = new();
                 await GetOrAddStats(id, uow, playerDTO);
+                await GetOrAddGoods(id, uow, playerDTO);
                 return playerDTO;
             }
         }
@@ -43,6 +47,11 @@ namespace BLL.Services.Players
                         return;
                     }
                 }
+        }
+        private async Task GetOrAddGoods(int id, IUnitOfWork uow, PlayerDTO playerDTO)
+        {
+            List<GoodsVO> goods = await uow.Goods.GetAllGoods(id);
+
         }
     }
 }
