@@ -1,7 +1,6 @@
 ﻿using BLL.DTOs;
 using BLL.UoW;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 
 namespace BLL.Caching
 {
@@ -14,7 +13,8 @@ namespace BLL.Caching
         }
         public bool AddPlayer(int id, PlayerDTO playerInfo)
         {
-            Player player = new(id,playerInfo.Stats,playerInfo.Goods);
+            Player player = new(id,playerInfo.Chapter!, playerInfo.Stats!, playerInfo.Goods!, playerInfo.Skills!);
+            Console.WriteLine("add");
             return _players.TryAdd(id, player);
         }
 
@@ -23,18 +23,21 @@ namespace BLL.Caching
             return _players[id];
         }
 
-        public async Task RemovePlayer(int id)
+        public async Task<bool> RemovePlayer(int id)
         {
-            if (_players.TryGetValue(id, out var removePlayer))
+            bool success = false;
+            if (_players.TryRemove(id, out var removePlayer))
             {
                 await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
                 {
-                    bool success = true;
+                    success = true;
                     success &= await removePlayer.UpdateStats(uow.Stat);
+                    success &= await removePlayer.UpdateGoods(uow.Goods);
                     if (!success)
                         await uow.RollbackAsync();
                 }
             }
+            return success;
         }
     }
 }

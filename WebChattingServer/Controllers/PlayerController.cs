@@ -28,7 +28,8 @@ namespace WebChattingServer.Controllers
             {
                 PlayerDTO? playerInfo = await _playerService.GetPlayerInfos(val);
                 if (playerInfo == null) return default;
-                _playerManager.AddPlayer(val, playerInfo);
+                bool success = _playerManager.AddPlayer(val, playerInfo);
+                Console.WriteLine($"AddPlayer: {success}");
                 return playerInfo;
             }
             return NoContent();
@@ -36,13 +37,15 @@ namespace WebChattingServer.Controllers
         [HttpDelete("log-out")]
         public async Task LogOut()
         {
+            Console.WriteLine("ASD");
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
-                await _playerManager.RemovePlayer(val);
+                bool success  = await _playerManager.RemovePlayer(val);
+                Console.WriteLine($"RemovePlayer: {success}");
             }
         }
-        [HttpPost("stat-up")]
+        [HttpPost("stat/level-up")]
         public void StatLevelUp(StatDTO statDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -51,13 +54,22 @@ namespace WebChattingServer.Controllers
                 _playerManager.GetPlayer(val).LevelUpStat(statDTO.StatType, statDTO.Level);
             }
         }
-        [HttpPost("goods-up")]
-        public void GoodsLevelUp(GoodsDTO goodsDTO)
+        [HttpPost("goods/add")]
+        public void AddGoods(GoodsDTO goodsDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
                 _playerManager.GetPlayer(val).AddGoods(goodsDTO.GoodsType, goodsDTO.Amount);
+            }
+        }
+        [HttpPost("skill/changed")]
+        public void SkillChanged(SkillValueChangeDTO skillDTO)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val) && !string.IsNullOrEmpty(skillDTO.SkillName))
+            {
+                _playerManager.GetPlayer(val).ChangeSkill(skillDTO.SkillName,skillDTO.Amount,skillDTO.Upgrade);
             }
         }
     }

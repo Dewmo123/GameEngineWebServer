@@ -28,19 +28,21 @@ namespace BLL.Services.Players
                 PlayerDTO playerDTO = new();
                 await GetOrAddStats(id, uow, playerDTO);
                 await GetOrAddGoods(id, uow, playerDTO);
+                await GetSkills(id, uow, playerDTO);
+                await GetOrAddChapter(id, uow, playerDTO);
                 return playerDTO;
             }
         }
 
         private async Task GetOrAddStats(int id, IUnitOfWork uow, PlayerDTO playerDTO)
         {
-            List<StatVO> statVOs = await uow.Stat.GetStatsAsync(id);
+            List<StatVO> statVOs = await uow.Stat.GetStats(id);
             playerDTO.Stats = statVOs.ToDictionary(item => item.StatType, item => item.Level);
             foreach (var item in defaultStat)
                 if (!playerDTO.Stats.ContainsKey(item.Key))
                 {
                     playerDTO.Stats.Add(item.Key, item.Value);
-                    int affected = await uow.Stat.AddStatAsync(id, item.Key,item.Value);
+                    int affected = await uow.Stat.AddStat(id, item.Key,item.Value);
                     if (affected != 1)
                     {
                         await uow.RollbackAsync();
@@ -64,6 +66,26 @@ namespace BLL.Services.Players
                         return;
                     }
                 }
+        }
+        private async Task GetSkills(int id,IUnitOfWork uow,PlayerDTO playerDTO)
+        {
+            List<SkillVO> vos = await uow.Skill.GetAllSkills(id);
+            List<SkillDTO> dtos = _mapper.Map<List<SkillVO>, List<SkillDTO>>(vos);
+            playerDTO.Skills = dtos.ToDictionary(item => item.SkillName!, item => item);
+        }
+        private async Task GetOrAddChapter(int id, IUnitOfWork uow, PlayerDTO playerDTO)
+        {
+            ChapterVO? chapter = await uow.Chapter.GetChapter(id);
+            if (chapter == null) 
+            {
+                await uow.Chapter.AddChapter(id, 1, 1);
+                chapter = new ChapterVO()
+                {
+                    Chapter = 1,
+                    Stage = 1
+                };
+            }
+            playerDTO.Chapter = _mapper.Map<ChapterVO,ChapterDTO>(chapter);
         }
     }
 }

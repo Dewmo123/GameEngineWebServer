@@ -9,6 +9,8 @@ namespace BLL.UoW
         IRoleRepository Role { get; }
         IStatRepository Stat { get; }
         IGoodsRepository Goods { get; }
+        ISkillRepository Skill { get; }
+        IChapterRepository Chapter { get; }
         Task CommitAsync();
         Task RollbackAsync();
     }
