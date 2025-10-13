@@ -8,6 +8,7 @@ namespace BLL.DTOs
         public Dictionary<StatType, int>? Stats { get; set; }
         public Dictionary<GoodsType, int>? Goods { get; set; }
         public Dictionary<string,SkillDTO>? Skills { get; set; }
+        public Dictionary<string, PartnerDTO>? Partners { get; set; }
     }
     public record class StatDTO
     {
@@ -22,6 +23,13 @@ namespace BLL.DTOs
     public record class SkillDTO
     {
         public string? SkillName { get; set; }
+        public int Level { get; set; }
+        public int Upgrade { get; set; }
+        public int Amount { get; set; }
+    }
+    public record class PartnerDTO
+    {
+        public string? PartnerName { get; set; }
         public int Level { get; set; }
         public int Upgrade { get; set; }
         public int Amount { get; set; }

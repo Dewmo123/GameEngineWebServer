@@ -13,7 +13,7 @@ namespace BLL.Caching
         }
         public bool AddPlayer(int id, PlayerDTO playerInfo)
         {
-            Player player = new(id,playerInfo.Chapter!, playerInfo.Stats!, playerInfo.Goods!, playerInfo.Skills!);
+            Player player = new(id,playerInfo.Chapter!, playerInfo.Stats!, playerInfo.Goods!, playerInfo.Skills!,playerInfo.Partners!);
             Console.WriteLine("add");
             return _players.TryAdd(id, player);
         }
@@ -23,22 +23,10 @@ namespace BLL.Caching
             return _players[id];
         }
 
-        public async Task<bool> RemovePlayer(int id)
+        public bool RemovePlayer(int id,out Player? player)
         {
-            bool success = false;
-            if (_players.TryRemove(id, out var removePlayer))
-            {
-                await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
-                {
-                    success = true;
-                    success &= await removePlayer.UpdateStats(uow.Stat);
-                    success &= await removePlayer.UpdateGoods(uow.Goods);
-                    success &= await removePlayer.UpdateChapter(uow.Chapter);
-                    success &= await removePlayer.UpdateSkill(uow.Skill);
-                    if (!success)
-                        await uow.RollbackAsync();
-                }
-            }
+            bool success = _players.TryRemove(id, out var removePlayer);
+            player = removePlayer;
             return success;
         }
     }

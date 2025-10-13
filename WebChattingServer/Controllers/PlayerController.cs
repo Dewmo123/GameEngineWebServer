@@ -1,7 +1,6 @@
 ﻿using BLL.Caching;
 using BLL.DTOs;
 using BLL.Services.Players;
-using DAL.VOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -41,7 +40,11 @@ namespace WebChattingServer.Controllers
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
-                bool success = await _playerManager.RemovePlayer(val);
+                bool success = _playerManager.RemovePlayer(val, out Player? player);
+                if (success && player != null)
+                {
+                    success &= await _playerService.UpdatePlayer(player.Id, player.GetCopyDTO());
+                }
                 Console.WriteLine($"RemovePlayer: {success}");
             }
         }

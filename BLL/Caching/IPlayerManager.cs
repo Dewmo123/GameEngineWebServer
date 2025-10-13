@@ -4,7 +4,7 @@ namespace BLL.Caching
 {
     public interface IPlayerManager
     {
-        Task<bool> RemovePlayer(int id);
+        bool RemovePlayer(int id,out Player? player);
         bool AddPlayer(int id, PlayerDTO playerInfo);
         Player GetPlayer(int id);
     }

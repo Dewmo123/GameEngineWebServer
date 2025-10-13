@@ -1,7 +1,5 @@
 ﻿using BLL.DTOs;
-using DAL.Repositories.Players;
 using DAL.VOs;
-using static Mysqlx.Notice.Warning.Types;
 
 namespace BLL.Caching
 {
@@ -13,7 +11,9 @@ namespace BLL.Caching
         public Dictionary<StatType, int> Stats { get; set; }
         public Dictionary<GoodsType, int> Goods { get; set; }
         public Dictionary<string, SkillDTO> Skills { get; set; }
-        public Player(int id,ChapterDTO chapter, Dictionary<StatType, int> stats, Dictionary<GoodsType, int> goods, Dictionary<string, SkillDTO> skills)
+        public Dictionary<string, PartnerDTO> Partners { get; set; }
+        public Player(int id, ChapterDTO chapter, Dictionary<StatType, int> stats,
+            Dictionary<GoodsType, int> goods, Dictionary<string, SkillDTO> skills, Dictionary<string, PartnerDTO> partners)
         {
             rwLock = new();
             Id = id;
@@ -21,8 +21,9 @@ namespace BLL.Caching
             Stats = stats;
             Goods = goods;
             Skills = skills;
+            Partners = partners;
         }
-        public bool LevelUpStat(StatType stat,int level)
+        public bool LevelUpStat(StatType stat, int level)
         {
             if (level <= 0)
                 return false;
@@ -37,7 +38,7 @@ namespace BLL.Caching
                 rwLock.ExitWriteLock();
             }
         }
-        public bool GoodsChanged(GoodsType goods,int amount)
+        public bool GoodsChanged(GoodsType goods, int amount)
         {
             try
             {
@@ -53,7 +54,7 @@ namespace BLL.Caching
                 rwLock.ExitWriteLock();
             }
         }
-        public void LevelUpSkill(string skillName,int level)
+        public void LevelUpSkill(string skillName, int level)
         {
             try
             {
@@ -80,7 +81,7 @@ namespace BLL.Caching
                 rwLock.ExitWriteLock();
             }
         }
-        public bool ChapterChanged(int chapter,int stage)
+        public bool ChapterChanged(int chapter, int stage)
         {
             try
             {
@@ -102,7 +103,7 @@ namespace BLL.Caching
             try
             {
                 rwLock.EnterWriteLock();
-                Chapter.EnemyCount+=count;
+                Chapter.EnemyCount += count;
                 Console.WriteLine(Chapter.EnemyCount);
             }
             finally
@@ -124,95 +125,25 @@ namespace BLL.Caching
                 rwLock.ExitWriteLock();
             }
         }
-        #region Update Region
-        public async Task<bool> UpdateStats(IStatRepository statRepo)
+        public PlayerDTO GetCopyDTO()
         {
-            Dictionary<StatType, int> statsCopy;
             try
             {
                 rwLock.EnterReadLock();
-                statsCopy = new Dictionary<StatType, int>(Stats);
-            }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
-
-            bool success = true;
-            foreach (var item in statsCopy)
-            {
-                int affected = await statRepo.UpdateStat(Id, item.Key, item.Value);
-                success &= affected == 1;
-            }
-            return success;
-        }
-        public async Task<bool> UpdateGoods(IGoodsRepository goodsRepo)
-        {
-            Dictionary<GoodsType, int> goodsCopy;
-            try
-            {
-                rwLock.EnterReadLock();
-                goodsCopy = new Dictionary<GoodsType, int>(Goods);
-            }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
-
-            bool success = true;
-            foreach (var item in goodsCopy)
-            {
-                int affected = await goodsRepo.UpdateGoods(Id, item.Key, item.Value);
-                success &= affected == 1;
-            }
-            return success;
-        }
-        public async Task<bool> UpdateChapter(IChapterRepository chapterRepo)
-        {
-            ChapterDTO chapterCopy;
-            try
-            {
-                rwLock.EnterReadLock();
-                chapterCopy = new ChapterDTO
+                PlayerDTO playerDTO = new()
                 {
-                    Chapter = Chapter.Chapter,
-                    Stage = Chapter.Stage,
-                    EnemyCount = Chapter.EnemyCount
+                    Chapter = new ChapterDTO { Chapter = Chapter.Chapter, EnemyCount = Chapter.EnemyCount, Stage = Chapter.Stage },
+                    Goods = new(Goods),
+                    Skills = new(Skills),
+                    Stats = new(Stats),
+                    Partners = new(Partners)
                 };
+                return playerDTO;
             }
             finally
             {
                 rwLock.ExitReadLock();
             }
-
-            int affected = await chapterRepo.UpdateChapter(Id, chapterCopy.Chapter, chapterCopy.Stage,chapterCopy.EnemyCount);
-            return affected == 1;
         }
-        public async Task<bool> UpdateSkill(ISkillRepository skillRepo)
-        {
-            Dictionary<string, SkillDTO> skillsCopy;
-            try
-            {
-                rwLock.EnterReadLock();
-                skillsCopy = new Dictionary<string, SkillDTO>(Skills);
-            }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
-
-            bool success = true;
-            foreach (var item in skillsCopy)
-            {
-                int affected = await skillRepo.UpdateSkill(Id, item.Key, item.Value.Level, item.Value.Upgrade, item.Value.Amount);
-                if (affected == 0)
-                {
-                    affected = await skillRepo.AddSkill(Id, item.Key, item.Value.Level, item.Value.Upgrade, item.Value.Amount);
-                }
-                success &= affected == 1;
-            }
-            return success;
-        }
-        #endregion
     }
 }
