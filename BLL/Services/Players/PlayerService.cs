@@ -10,12 +10,16 @@ namespace BLL.Services.Players
         IMapper _mapper;
         private static readonly Dictionary<StatType, int> defaultStat = new()
         {
-            {StatType.AttackPower,0 },
-            {StatType.AttackSpeed,0 },
-            {StatType.Health,0 },
+            {StatType.AttackPower,1 },
+            {StatType.AttackSpeed,1 },
+            {StatType.Health,1 },
+            {StatType.CriticalChance,1 },
+            {StatType.CriticalDamage,1 },
         }; private static readonly Dictionary<GoodsType, int> defaultGoods = new()
         {
             {GoodsType.Gold, 0 },
+            {GoodsType.Crystal, 0 },
+            {GoodsType.ReinforceStone, 0 },
         };
         public PlayerService(IMapper mapper)
         {
@@ -78,11 +82,12 @@ namespace BLL.Services.Players
             ChapterVO? chapter = await uow.Chapter.GetChapter(id);
             if (chapter == null) 
             {
-                await uow.Chapter.AddChapter(id, 1, 1);
+                await uow.Chapter.AddChapter(id, 1, 1, 0);
                 chapter = new ChapterVO()
                 {
                     Chapter = 1,
-                    Stage = 1
+                    Stage = 1,
+                    EnemyCount = 0
                 };
             }
             playerDTO.Chapter = _mapper.Map<ChapterVO,ChapterDTO>(chapter);

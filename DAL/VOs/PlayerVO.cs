@@ -6,11 +6,15 @@
         AttackPower,
         AttackSpeed,
         Health,
+        CriticalChance,
+        CriticalDamage
     }
     public enum GoodsType
     {
         None = 0,
         Gold,
+        Crystal,
+        ReinforceStone
     }
     internal class PlayerVO
     {
@@ -35,9 +39,18 @@
         public int Upgrade { get; set; }
         public int Amount { get; set; }
     }
+    public record class PartnerVO
+    {
+        public int Id { get; set; }
+        public string? PartnerName { get; set; }
+        public int Level { get; set; }
+        public int Upgrade { get; set; }
+        public int Amount { get; set; }
+    }
     public record class ChapterVO
     {
         public int Chapter { get; set; }
         public int Stage { get; set; }
+        public int EnemyCount { get; set; }
     }
 }

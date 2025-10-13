@@ -33,6 +33,8 @@ namespace BLL.Caching
                     success = true;
                     success &= await removePlayer.UpdateStats(uow.Stat);
                     success &= await removePlayer.UpdateGoods(uow.Goods);
+                    success &= await removePlayer.UpdateChapter(uow.Chapter);
+                    success &= await removePlayer.UpdateSkill(uow.Skill);
                     if (!success)
                         await uow.RollbackAsync();
                 }

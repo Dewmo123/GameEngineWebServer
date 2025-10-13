@@ -26,15 +26,14 @@ namespace BLL.DTOs
         public int Upgrade { get; set; }
         public int Amount { get; set; }
     }
-    public record class SkillValueChangeDTO
-    {
-        public string? SkillName { get; set; }
-        public int Upgrade { get; set; }
-        public int Amount { get; set; }
-    }
     public record class ChapterDTO
     {
         public int Chapter { get; set; }
         public int Stage { get; set; }
+        public int EnemyCount { get; set; }
+    }
+    public record class EnemyDeadDTO
+    {
+        public int EnemyCount { get; set; }
     }
 }

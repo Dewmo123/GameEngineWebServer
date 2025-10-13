@@ -22,24 +22,31 @@ namespace BLL.Caching
             Goods = goods;
             Skills = skills;
         }
-        public void LevelUpStat(StatType stat,int level)
+        public bool LevelUpStat(StatType stat,int level)
         {
+            if (level <= 0)
+                return false;
             try
             {
                 rwLock.EnterWriteLock();
                 Stats[stat] += level;
+                return true;
             }
             finally
             {
                 rwLock.ExitWriteLock();
             }
         }
-        public void AddGoods(GoodsType goods,int amount)
+        public bool GoodsChanged(GoodsType goods,int amount)
         {
             try
             {
                 rwLock.EnterWriteLock();
+                if (Goods[goods] + amount < 0)
+                    return false;
                 Goods[goods] += amount;
+                Console.WriteLine(Goods[goods]);
+                return true;
             }
             finally
             {
@@ -61,23 +68,48 @@ namespace BLL.Caching
                 rwLock.ExitWriteLock();
             }
         }
-        public void ChangeSkill(string skillName, int amount,int upgrade)
+        public void ChangeSkill(SkillDTO skill)
         {
             try
             {
                 rwLock.EnterWriteLock();
-                if (!Skills.ContainsKey(skillName))
-                    return;
-                SkillDTO dto = Skills[skillName];
-                dto.Amount = amount;
-                dto.Upgrade = upgrade;
+                Skills[skill.SkillName] = skill;
             }
             finally
             {
                 rwLock.ExitWriteLock();
             }
         }
-
+        public bool ChapterChanged(int chapter,int stage)
+        {
+            try
+            {
+                rwLock.EnterWriteLock();
+                if (chapter <= 0 || stage <= 0)
+                    return false;
+                Chapter.Chapter = chapter;
+                Chapter.Stage = stage;
+                Chapter.EnemyCount = 0;
+                return true;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+        public void EnemyDead(int count)
+        {
+            try
+            {
+                rwLock.EnterWriteLock();
+                Chapter.EnemyCount+=count;
+                Console.WriteLine(Chapter.EnemyCount);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
         public void AddSkill(SkillDTO skill)
         {
             try
@@ -144,7 +176,8 @@ namespace BLL.Caching
                 chapterCopy = new ChapterDTO
                 {
                     Chapter = Chapter.Chapter,
-                    Stage = Chapter.Stage
+                    Stage = Chapter.Stage,
+                    EnemyCount = Chapter.EnemyCount
                 };
             }
             finally
@@ -152,7 +185,7 @@ namespace BLL.Caching
                 rwLock.ExitReadLock();
             }
 
-            int affected = await chapterRepo.UpdateChapter(Id, chapterCopy.Chapter, chapterCopy.Stage);
+            int affected = await chapterRepo.UpdateChapter(Id, chapterCopy.Chapter, chapterCopy.Stage,chapterCopy.EnemyCount);
             return affected == 1;
         }
         public async Task<bool> UpdateSkill(ISkillRepository skillRepo)

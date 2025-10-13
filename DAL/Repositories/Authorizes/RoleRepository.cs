@@ -3,7 +3,7 @@ using Dapper;
 using MySql.Data.MySqlClient;
 using System.Data.Common;
 
-namespace DAL.Repositories.Players
+namespace DAL.Repositories.Authorizes
 {
     public class RoleRepository : Repository, IRoleRepository
     {

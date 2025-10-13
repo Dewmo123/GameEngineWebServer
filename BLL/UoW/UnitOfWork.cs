@@ -14,12 +14,14 @@ namespace BLL.UoW
         private IGoodsRepository? _goods;
         private ISkillRepository? _skill;
         private IChapterRepository? _chapter;
+        private IPartnerRepository? _partner;
         public IAuthorizeRepository Auth => _auth ??= new AuthorizeRepository(_connection, _transaction);
         public IRoleRepository Role => _role ??= new RoleRepository(_connection, _transaction);
         public IStatRepository Stat => _stat ??= new StatRepository(_connection, _transaction);
         public IGoodsRepository Goods => _goods ??= new GoodsRepository(_connection, _transaction);
         public ISkillRepository Skill => _skill ??= new SkillRepository(_connection,_transaction);
         public IChapterRepository Chapter => _chapter ??=new ChapterRepository(_connection,_transaction);
+        public IPartnerRepository Partner => _partner ??= new PartnerRepository(_connection,_transaction);
 
         private MySqlConnection _connection;
         private MySqlTransaction _transaction;

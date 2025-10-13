@@ -41,36 +41,62 @@ namespace WebChattingServer.Controllers
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
-                bool success  = await _playerManager.RemovePlayer(val);
+                bool success = await _playerManager.RemovePlayer(val);
                 Console.WriteLine($"RemovePlayer: {success}");
             }
         }
         [HttpPost("stat/level-up")]
-        public void StatLevelUp(StatDTO statDTO)
+        public IActionResult StatLevelUp(StatDTO statDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
-                _playerManager.GetPlayer(val).LevelUpStat(statDTO.StatType, statDTO.Level);
+                bool success = _playerManager.GetPlayer(val).LevelUpStat(statDTO.StatType, statDTO.Level); ;
+                return success ? Ok() : BadRequest();
             }
+            return Unauthorized();
         }
-        [HttpPost("goods/add")]
-        public void AddGoods(GoodsDTO goodsDTO)
+        [HttpPost("goods/changed")]
+        public IActionResult GoodsChanged(GoodsDTO goodsDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
-                _playerManager.GetPlayer(val).AddGoods(goodsDTO.GoodsType, goodsDTO.Amount);
+                bool success = _playerManager.GetPlayer(val).GoodsChanged(goodsDTO.GoodsType, goodsDTO.Amount);
+                return success ? Ok() : BadRequest();
             }
+            return Unauthorized();
         }
         [HttpPost("skill/changed")]
-        public void SkillChanged(SkillValueChangeDTO skillDTO)
+        public void SkillChanged(SkillDTO skillDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val) && !string.IsNullOrEmpty(skillDTO.SkillName))
             {
-                _playerManager.GetPlayer(val).ChangeSkill(skillDTO.SkillName,skillDTO.Amount,skillDTO.Upgrade);
+                _playerManager.GetPlayer(val).ChangeSkill(skillDTO);
             }
+        }
+        [HttpPost("stage/changed")]
+        public IActionResult StageChanged(ChapterDTO chapter)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
+            {
+                bool success = _playerManager.GetPlayer(val).ChapterChanged(chapter.Chapter, chapter.Stage);
+                return success ? Ok() : BadRequest();
+            }
+            return Unauthorized();
+        }
+        [HttpPost("stage/enemy-dead")]
+        public IActionResult EnemyDead(EnemyDeadDTO enemyDead)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
+            {
+                _playerManager.GetPlayer(val).EnemyDead(enemyDead.EnemyCount);
+                return Ok();
+            }
+            return Unauthorized();
         }
     }
 }
