@@ -1,9 +1,8 @@
-﻿
-using DAL.VOs;
+﻿using DAL.VOs;
 using Dapper;
 using MySql.Data.MySqlClient;
 
-namespace DAL.Repositories.Players
+namespace DAL.Repositories.Players.Chapter
 {
     public class ChapterRepository : Repository, IChapterRepository
     {

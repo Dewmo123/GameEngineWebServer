@@ -1,6 +1,6 @@
 ﻿using DAL.VOs;
 
-namespace DAL.Repositories.Players
+namespace DAL.Repositories.Players.Goods
 {
     public interface IGoodsRepository
     {

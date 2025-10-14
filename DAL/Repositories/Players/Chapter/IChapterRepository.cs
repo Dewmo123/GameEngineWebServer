@@ -1,6 +1,6 @@
 ﻿using DAL.VOs;
 
-namespace DAL.Repositories.Players
+namespace DAL.Repositories.Players.Chapter
 {
     public interface IChapterRepository
     {

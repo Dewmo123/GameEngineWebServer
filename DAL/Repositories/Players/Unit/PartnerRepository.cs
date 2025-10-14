@@ -2,7 +2,7 @@
 using Dapper;
 using MySql.Data.MySqlClient;
 
-namespace DAL.Repositories.Players
+namespace DAL.Repositories.Players.Unit
 {
     public class PartnerRepository : Repository, IPartnerRepository
     {

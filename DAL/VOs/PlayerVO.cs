@@ -7,14 +7,16 @@
         AttackSpeed,
         Health,
         CriticalChance,
-        CriticalDamage
+        CriticalDamage,
+        Hps
     }
     public enum GoodsType
     {
         None = 0,
         Gold,
         Crystal,
-        ReinforceStone
+        ReinforceStone,
+        DungeonKey
     }
     internal class PlayerVO
     {
@@ -52,5 +54,11 @@
         public int Chapter { get; set; }
         public int Stage { get; set; }
         public int EnemyCount { get; set; }
+    }
+    public record class SkillEquipVO
+    {
+        public int Id { get; private set; }
+        public int Idx { get; private set; }
+        public string? SkillName { get; private set; }
     }
 }

@@ -71,13 +71,15 @@ namespace WebChattingServer.Controllers
             return Unauthorized();
         }
         [HttpPost("skill/changed")]
-        public void SkillChanged(SkillDTO skillDTO)
+        public IActionResult SkillChanged(SkillDTO skillDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val) && !string.IsNullOrEmpty(skillDTO.SkillName))
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
-                _playerManager.GetPlayer(val).ChangeSkill(skillDTO);
+                bool success = _playerManager.GetPlayer(val).ChangeSkill(skillDTO);
+                return success ? Ok() : BadRequest();
             }
+            return Unauthorized();
         }
         [HttpPost("stage/changed")]
         public IActionResult StageChanged(ChapterDTO chapter)
@@ -97,6 +99,17 @@ namespace WebChattingServer.Controllers
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
                 _playerManager.GetPlayer(val).EnemyDead(enemyDead.EnemyCount);
+                return Ok();
+            }
+            return Unauthorized();
+        }
+        [HttpPost("skill/equip")]
+        public IActionResult equipSkill(SkillEquipDTO skillDTO)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
+            {
+                _playerManager.GetPlayer(val).EquipSkill(skillDTO.Idx, skillDTO.SkillName);
                 return Ok();
             }
             return Unauthorized();

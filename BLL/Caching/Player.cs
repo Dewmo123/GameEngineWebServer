@@ -12,16 +12,17 @@ namespace BLL.Caching
         public Dictionary<GoodsType, int> Goods { get; set; }
         public Dictionary<string, SkillDTO> Skills { get; set; }
         public Dictionary<string, PartnerDTO> Partners { get; set; }
-        public Player(int id, ChapterDTO chapter, Dictionary<StatType, int> stats,
-            Dictionary<GoodsType, int> goods, Dictionary<string, SkillDTO> skills, Dictionary<string, PartnerDTO> partners)
+        public string?[] SkillEquips { get; set; } = new string?[DefaultSetting.skillEquipLength];
+        public Player(int id, PlayerDTO playerInfo)
         {
             rwLock = new();
             Id = id;
-            Chapter = chapter;
-            Stats = stats;
-            Goods = goods;
-            Skills = skills;
-            Partners = partners;
+            Chapter = playerInfo.Chapter!;
+            Stats = playerInfo.Stats!;
+            Goods = playerInfo.Goods!;
+            Skills = playerInfo.Skills!;
+            Partners = playerInfo.Partners!;
+            SkillEquips = playerInfo.SkillEquips;
         }
         public bool LevelUpStat(StatType stat, int level)
         {
@@ -69,12 +70,32 @@ namespace BLL.Caching
                 rwLock.ExitWriteLock();
             }
         }
-        public void ChangeSkill(SkillDTO skill)
+        public bool ChangeSkill(SkillDTO skill)
         {
             try
             {
                 rwLock.EnterWriteLock();
+                if (string.IsNullOrEmpty(skill.SkillName) || !DefaultSetting.skills.Contains(skill.SkillName))
+                    return false;
                 Skills[skill.SkillName] = skill;
+                return true;
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+        public bool EquipSkill(int idx, string? skillName)
+        {
+            try
+            {
+                rwLock.EnterWriteLock();
+                if (idx < 0 || idx >= SkillEquips.Length)
+                    return false;
+                if (!string.IsNullOrEmpty(skillName) && !Skills.ContainsKey(skillName))
+                    return false;
+                SkillEquips[idx] = skillName;
+                return true;
             }
             finally
             {
@@ -116,7 +137,7 @@ namespace BLL.Caching
             try
             {
                 rwLock.EnterWriteLock();
-                if (Skills.ContainsKey(skill.SkillName))
+                if (Skills.ContainsKey(skill.SkillName) || !DefaultSetting.skills.Contains(skill.SkillName))
                     return;
                 Skills.Add(skill.SkillName, skill);
             }
@@ -136,7 +157,8 @@ namespace BLL.Caching
                     Goods = new(Goods),
                     Skills = new(Skills),
                     Stats = new(Stats),
-                    Partners = new(Partners)
+                    Partners = new(Partners),
+                    SkillEquips = SkillEquips.ToArray()
                 };
                 return playerDTO;
             }

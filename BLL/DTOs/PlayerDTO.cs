@@ -1,4 +1,5 @@
-﻿using DAL.VOs;
+﻿using BLL.Caching;
+using DAL.VOs;
 
 namespace BLL.DTOs
 {
@@ -9,6 +10,7 @@ namespace BLL.DTOs
         public Dictionary<GoodsType, int>? Goods { get; set; }
         public Dictionary<string,SkillDTO>? Skills { get; set; }
         public Dictionary<string, PartnerDTO>? Partners { get; set; }
+        public string?[] SkillEquips { get; set; } = new string?[DefaultSetting.skillEquipLength];
     }
     public record class StatDTO
     {
@@ -43,5 +45,10 @@ namespace BLL.DTOs
     public record class EnemyDeadDTO
     {
         public int EnemyCount { get; set; }
+    }
+    public record class SkillEquipDTO
+    {
+        public int Idx { get; set; }
+        public string? SkillName { get; set; }
     }
 }

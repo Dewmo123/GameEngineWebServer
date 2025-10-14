@@ -27,6 +27,8 @@ namespace WebChattingServer
                 config.CreateMap<ChapterVO, ChapterDTO>();
                 config.CreateMap<PartnerVO, PartnerDTO>();
                 config.CreateMap<PartnerDTO, PartnerVO>();
+                config.CreateMap<SkillEquipVO, SkillEquipDTO>();
+                config.CreateMap<SkillEquipDTO, SkillEquipVO>();
             });
             builder.Services.AddCors(options =>
             {

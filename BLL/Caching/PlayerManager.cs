@@ -13,7 +13,7 @@ namespace BLL.Caching
         }
         public bool AddPlayer(int id, PlayerDTO playerInfo)
         {
-            Player player = new(id,playerInfo.Chapter!, playerInfo.Stats!, playerInfo.Goods!, playerInfo.Skills!,playerInfo.Partners!);
+            Player player = new(id, playerInfo);
             Console.WriteLine("add");
             return _players.TryAdd(id, player);
         }

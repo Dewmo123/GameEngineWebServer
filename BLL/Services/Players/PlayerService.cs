@@ -2,28 +2,19 @@
 using BLL.Caching;
 using BLL.DTOs;
 using BLL.UoW;
-using DAL.Repositories.Players;
+using DAL.Repositories.Players.Chapter;
+using DAL.Repositories.Players.Equip;
+using DAL.Repositories.Players.Goods;
+using DAL.Repositories.Players.Stat;
+using DAL.Repositories.Players.Unit;
 using DAL.VOs;
-using static Mysqlx.Crud.Find.Types;
 
 namespace BLL.Services.Players
 {
     public class PlayerService : IPlayerService
     {
         IMapper _mapper;
-        private static readonly Dictionary<StatType, int> defaultStat = new()
-        {
-            {StatType.AttackPower,1 },
-            {StatType.AttackSpeed,1 },
-            {StatType.Health,1 },
-            {StatType.CriticalChance,1 },
-            {StatType.CriticalDamage,1 },
-        }; private static readonly Dictionary<GoodsType, int> defaultGoods = new()
-        {
-            {GoodsType.Gold, 0 },
-            {GoodsType.Crystal, 0 },
-            {GoodsType.ReinforceStone, 0 },
-        };
+
         public PlayerService(IMapper mapper)
         {
             _mapper = mapper;
@@ -38,6 +29,7 @@ namespace BLL.Services.Players
                 await GetSkills(id, uow, playerDTO);
                 await GetOrAddChapter(id, uow, playerDTO);
                 await GetPartners(id, uow, playerDTO);
+                await GetOrAddSkillEquip(id, uow, playerDTO);
                 return playerDTO;
             }
         }
@@ -45,11 +37,11 @@ namespace BLL.Services.Players
         {
             List<StatVO> statVOs = await uow.Stat.GetStats(id);
             playerDTO.Stats = statVOs.ToDictionary(item => item.StatType, item => item.Level);
-            foreach (var item in defaultStat)
+            foreach (var item in DefaultSetting.defaultStat)
                 if (!playerDTO.Stats.ContainsKey(item.Key))
                 {
                     playerDTO.Stats.Add(item.Key, item.Value);
-                    int affected = await uow.Stat.AddStat(id, item.Key,item.Value);
+                    int affected = await uow.Stat.AddStat(id, item.Key, item.Value);
                     if (affected != 1)
                     {
                         await uow.RollbackAsync();
@@ -61,7 +53,7 @@ namespace BLL.Services.Players
         {
             List<GoodsVO> goods = await uow.Goods.GetAllGoods(id);
             playerDTO.Goods = goods.ToDictionary(item => item.GoodsType, item => item.Amount);
-            foreach (var item in defaultGoods)
+            foreach (var item in DefaultSetting.defaultGoods)
                 if (!playerDTO.Goods.ContainsKey(item.Key))
                 {
                     playerDTO.Goods.Add(item.Key, item.Value);
@@ -74,7 +66,7 @@ namespace BLL.Services.Players
                     }
                 }
         }
-        private async Task GetSkills(int id,IUnitOfWork uow,PlayerDTO playerDTO)
+        private async Task GetSkills(int id, IUnitOfWork uow, PlayerDTO playerDTO)
         {
             List<SkillVO> vos = await uow.Skill.GetAllSkills(id);
             List<SkillDTO> dtos = _mapper.Map<List<SkillVO>, List<SkillDTO>>(vos);
@@ -89,7 +81,7 @@ namespace BLL.Services.Players
         private async Task GetOrAddChapter(int id, IUnitOfWork uow, PlayerDTO playerDTO)
         {
             ChapterVO? chapter = await uow.Chapter.GetChapter(id);
-            if (chapter == null) 
+            if (chapter == null)
             {
                 await uow.Chapter.AddChapter(id, 1, 1, 0);
                 chapter = new ChapterVO()
@@ -99,26 +91,37 @@ namespace BLL.Services.Players
                     EnemyCount = 0
                 };
             }
-            playerDTO.Chapter = _mapper.Map<ChapterVO,ChapterDTO>(chapter);
+            playerDTO.Chapter = _mapper.Map<ChapterVO, ChapterDTO>(chapter);
         }
-
-        public async Task<bool> UpdatePlayer(int id,PlayerDTO playerDTO)
+        private async Task GetOrAddSkillEquip(int id, IUnitOfWork uow, PlayerDTO playerDTO)
+        {
+            List<SkillEquipVO> vos = await uow.SkillEquip.GetSkillEquips(id);
+            foreach (var item in vos)
+                playerDTO.SkillEquips[item.Idx] = item.SkillName;
+            if (vos.Count == 0)
+            {
+                foreach (var item in DefaultSetting.defaultSkillEquip)
+                    await uow.SkillEquip.AddSkillEquip(id, item, "");
+            }
+        }
+        public async Task<bool> UpdatePlayer(int id, PlayerDTO playerDTO)
         {
             await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
             {
                 bool success = true;
-                success &= await UpdateStats(id, playerDTO.Stats,uow.Stat );
-                success &= await UpdateGoods(id,  playerDTO.Goods,uow.Goods);
-                success &= await UpdateSkills(id, playerDTO.Skills,uow.Skill );
-                success &= await UpdateChapter(id, playerDTO.Chapter, uow.Chapter );
-                success &= await UpdatePartners(id, playerDTO.Partners, uow.Partner );
+                success &= await UpdateStats(id, playerDTO.Stats, uow.Stat);
+                success &= await UpdateGoods(id, playerDTO.Goods, uow.Goods);
+                success &= await UpdateSkills(id, playerDTO.Skills, uow.Skill);
+                success &= await UpdateChapter(id, playerDTO.Chapter, uow.Chapter);
+                success &= await UpdatePartners(id, playerDTO.Partners, uow.Partner);
+                success &= await UpdateSkillEquip(id, playerDTO.SkillEquips, uow.SkillEquip);
                 if (!success)
                     await uow.RollbackAsync();
                 return success;
             }
         }
         #region Update Region
-        private async Task<bool> UpdateStats(int id,Dictionary<StatType,int> stats,IStatRepository statRepo)
+        private async Task<bool> UpdateStats(int id, Dictionary<StatType, int> stats, IStatRepository statRepo)
         {
             bool success = true;
             foreach (var item in stats)
@@ -128,7 +131,7 @@ namespace BLL.Services.Players
             }
             return success;
         }
-        private async Task<bool> UpdateGoods(int id, Dictionary<GoodsType, int> goods,IGoodsRepository goodsRepo)
+        private async Task<bool> UpdateGoods(int id, Dictionary<GoodsType, int> goods, IGoodsRepository goodsRepo)
         {
             bool success = true;
             foreach (var item in goods)
@@ -138,12 +141,12 @@ namespace BLL.Services.Players
             }
             return success;
         }
-        private async Task<bool> UpdateChapter(int id, ChapterDTO chapter,IChapterRepository chapterRepo)
+        private async Task<bool> UpdateChapter(int id, ChapterDTO chapter, IChapterRepository chapterRepo)
         {
             int affected = await chapterRepo.UpdateChapter(id, chapter.Chapter, chapter.Stage, chapter.EnemyCount);
             return affected == 1;
         }
-        private async Task<bool> UpdateSkills(int id,Dictionary<string, SkillDTO> skills,ISkillRepository skillRepo)
+        private async Task<bool> UpdateSkills(int id, Dictionary<string, SkillDTO> skills, ISkillRepository skillRepo)
         {
             bool success = true;
             foreach (var item in skills)
@@ -167,6 +170,17 @@ namespace BLL.Services.Players
                 {
                     affected = await partnerRepo.AddPartner(id, item.Key, item.Value.Level, item.Value.Upgrade, item.Value.Amount);
                 }
+                success &= affected == 1;
+            }
+            return success;
+        }
+        private async Task<bool> UpdateSkillEquip(int id, string[] skillEquips, ISkillEquipRepository skillEquip)
+        {
+            bool success = true;
+            for (int i = 0; i < skillEquips.Length; i++)
+            {
+                int affected = 0;
+                affected = await skillEquip.UpdateSkillEquip(id, i, skillEquips[i]);
                 success &= affected == 1;
             }
             return success;
