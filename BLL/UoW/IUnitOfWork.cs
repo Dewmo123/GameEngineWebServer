@@ -17,6 +17,7 @@ namespace BLL.UoW
         IChapterRepository Chapter { get; }
         IPartnerRepository Partner { get; }
         ISkillEquipRepository SkillEquip { get; }
+        IPartnerEquipRepository PartnerEquip { get; }
         Task CommitAsync();
         Task RollbackAsync();
     }

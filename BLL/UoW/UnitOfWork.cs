@@ -21,6 +21,7 @@ namespace BLL.UoW
         private IChapterRepository? _chapter;
         private IPartnerRepository? _partner;
         private ISkillEquipRepository? _skilEquip;
+        private IPartnerEquipRepository? _partnerEquip;
         public IAuthorizeRepository Auth => _auth ??= new AuthorizeRepository(_connection, _transaction);
         public IRoleRepository Role => _role ??= new RoleRepository(_connection, _transaction);
         public IStatRepository Stat => _stat ??= new StatRepository(_connection, _transaction);
@@ -29,6 +30,7 @@ namespace BLL.UoW
         public IChapterRepository Chapter => _chapter ??=new ChapterRepository(_connection,_transaction);
         public IPartnerRepository Partner => _partner ??= new PartnerRepository(_connection,_transaction);
         public ISkillEquipRepository SkillEquip =>_skilEquip ??= new SkillEquipRepository(_connection,_transaction);
+        public IPartnerEquipRepository PartnerEquip => _partnerEquip ??= new PartnerEquipRepository(_connection,_transaction);
 
         private MySqlConnection _connection;
         private MySqlTransaction _transaction;

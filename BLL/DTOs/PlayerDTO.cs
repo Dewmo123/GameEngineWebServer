@@ -11,6 +11,7 @@ namespace BLL.DTOs
         public Dictionary<string,SkillDTO>? Skills { get; set; }
         public Dictionary<string, PartnerDTO>? Partners { get; set; }
         public string?[] SkillEquips { get; set; } = new string?[DefaultSetting.skillEquipLength];
+        public string?[] PartnerEquips { get; set; } = new string?[DefaultSetting.partnerEquipLength];
     }
     public record class StatDTO
     {

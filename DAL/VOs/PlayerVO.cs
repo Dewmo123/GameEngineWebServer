@@ -61,4 +61,10 @@
         public int Idx { get; private set; }
         public string? SkillName { get; private set; }
     }
+    public record class PartnerEquipVO
+    {
+        public int Id { get; private set; }
+        public int Idx { get; private set; }
+        public string? PartnerName { get; private set; }
+    }
 }
