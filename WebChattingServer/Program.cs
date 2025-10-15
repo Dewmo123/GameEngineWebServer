@@ -58,7 +58,7 @@ namespace WebChattingServer
 
             app.Use(async (ctx, next) =>
             {
-                Console.WriteLine("¿äÃ»: " + ctx.Request.Path);
+                Console.WriteLine("ï¿½ï¿½Ã»: " + ctx.Request.Path);
                 await next();
             });
             app.MapControllers();
@@ -72,6 +72,11 @@ namespace WebChattingServer
             builder.Services.AddTransient<IAuthorizeService, AuthorizeService>();
             builder.Services.AddTransient<IPlayerService, PlayerService>();
             builder.Services.AddSingleton<IPlayerManager, PlayerManager>();
+            builder.Services.AddTransient<IPlayerChapterService, PlayerChapterService>();
+            builder.Services.AddTransient<IPlayerGoodsService, PlayerGoodsService>();
+            builder.Services.AddTransient<IPlayerStatService, PlayerStatService>();
+            builder.Services.AddTransient<IPlayerSkillService, PlayerSkillService>();
+            builder.Services.AddTransient<IPlayerPartnerService, PlayerPartnerService>();
         }
 
         private static void SetAuthorizeAndAuthentification(WebApplicationBuilder builder)

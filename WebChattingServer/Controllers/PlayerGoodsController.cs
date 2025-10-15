@@ -1,5 +1,6 @@
 ﻿using BLL.Caching;
 using BLL.DTOs;
+using BLL.Services.Players;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,10 +12,12 @@ namespace WebChattingServer.Controllers
     [Route("player/goods")]
     public class PlayerGoodsController : ControllerBase
     {
-        IPlayerManager _playerManager;
-        public PlayerGoodsController(IPlayerManager manager)
+        private readonly IPlayerManager _playerManager;
+        private readonly IPlayerGoodsService _playerGoodsService;
+        public PlayerGoodsController(IPlayerManager manager, IPlayerGoodsService playerGoodsService)
         {
             _playerManager = manager;
+            _playerGoodsService = playerGoodsService;
         }
         [HttpPost("changed")]
         public IActionResult GoodsChanged(GoodsDTO goodsDTO)
@@ -22,7 +25,8 @@ namespace WebChattingServer.Controllers
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
-                bool success = _playerManager.GetPlayer(val).GoodsChanged(goodsDTO.GoodsType, goodsDTO.Amount);
+                Player player = _playerManager.GetPlayer(val);
+                bool success = _playerGoodsService.GoodsChanged(player, goodsDTO.GoodsType, goodsDTO.Amount);
                 return success ? Ok() : BadRequest();
             }
             return Unauthorized();

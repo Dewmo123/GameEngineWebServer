@@ -1,5 +1,6 @@
 ﻿using BLL.Caching;
 using BLL.DTOs;
+using BLL.Services.Players;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,10 +12,12 @@ namespace WebChattingServer.Controllers
     [Route("player/stat")]
     public class PlayerStatController : ControllerBase
     {
-        IPlayerManager _playerManager;
-        public PlayerStatController(IPlayerManager playerManager)
+        private readonly IPlayerManager _playerManager;
+        private readonly IPlayerStatService _playerStatService;
+        public PlayerStatController(IPlayerManager playerManager, IPlayerStatService playerStatService)
         {
             _playerManager = playerManager;
+            _playerStatService = playerStatService;
         }
         [HttpPost("level-up")]
         public IActionResult StatLevelUp(StatDTO statDTO)
@@ -22,7 +25,8 @@ namespace WebChattingServer.Controllers
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
-                bool success = _playerManager.GetPlayer(val).LevelUpStat(statDTO.StatType, statDTO.Level); ;
+                Player player = _playerManager.GetPlayer(val);
+                bool success = _playerStatService.LevelUpStat(player, statDTO.StatType, statDTO.Level);
                 return success ? Ok() : BadRequest();
             }
             return Unauthorized();

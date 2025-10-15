@@ -1,4 +1,4 @@
-﻿using BLL.Caching;
+using BLL.Caching;
 using BLL.DTOs;
 using BLL.Services.Players;
 using Microsoft.AspNetCore.Authorization;
@@ -9,37 +9,40 @@ namespace WebChattingServer.Controllers
 {
     [Authorize]
     [ApiController]
-    [Route("player/skill")]
-    public class PlayerSkillController : ControllerBase
+    [Route("player/partner")]
+    public class PlayerPartnerController : ControllerBase
     {
         private readonly IPlayerManager _playerManager;
-        private readonly IPlayerSkillService _playerSkillService;
-        public PlayerSkillController(IPlayerManager playerManager, IPlayerSkillService playerSkillService)
+        private readonly IPlayerPartnerService _playerPartnerService;
+
+        public PlayerPartnerController(IPlayerManager playerManager, IPlayerPartnerService playerPartnerService)
         {
             _playerManager = playerManager;
-            _playerSkillService = playerSkillService;
+            _playerPartnerService = playerPartnerService;
         }
+
         [HttpPost("changed")]
-        public IActionResult SkillChanged(SkillAmountDTO skillDTO)//AddAmount로 변경 필요
+        public IActionResult PartnerChanged(PartnerAmountDTO partnerDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
                 Player player = _playerManager.GetPlayer(val);
-                bool success = _playerSkillService.ChangeSkill(player, skillDTO.SkillName,skillDTO.Amount);
+                bool success = _playerPartnerService.ChangePartner(player, partnerDTO.PartnerName, partnerDTO.Amount);
                 return success ? Ok() : BadRequest();
             }
             return Unauthorized();
         }
+
         [HttpPost("equip")]
-        public IActionResult equipSkill(SkillEquipDTO skillDTO)
+        public IActionResult EquipPartner(PartnerEquipDTO partnerDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
                 Player player = _playerManager.GetPlayer(val);
-                _playerSkillService.EquipSkill(player, skillDTO.Idx, skillDTO.SkillName);
-                return Ok();
+                bool success = _playerPartnerService.EquipPartner(player, partnerDTO.Idx, partnerDTO.PartnerName);
+                return success ? Ok() : BadRequest();
             }
             return Unauthorized();
         }
