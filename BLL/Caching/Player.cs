@@ -70,14 +70,14 @@ namespace BLL.Caching
                 rwLock.ExitWriteLock();
             }
         }
-        public bool ChangeSkill(SkillDTO skill)
+        public bool ChangeSkill(string skillName, int amount)
         {
             try
             {
                 rwLock.EnterWriteLock();
-                if (string.IsNullOrEmpty(skill.SkillName) || !DefaultSetting.skills.Contains(skill.SkillName))
+                if (string.IsNullOrEmpty(skillName) || !DefaultSetting.skills.Contains(skillName))
                     return false;
-                Skills[skill.SkillName] = skill;
+                Skills[skillName].Amount+=amount;
                 return true;
             }
             finally
