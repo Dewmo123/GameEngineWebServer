@@ -23,7 +23,7 @@ namespace BLL.Caching
             Goods = playerInfo.Goods!;
             Skills = playerInfo.Skills!;
             Partners = playerInfo.Partners!;
-            SkillEquips = playerInfo.SkillEquips;
+            SkillEquips = playerInfo.SkillEquips!;
         }
         
         public PlayerDTO GetCopyDTO()

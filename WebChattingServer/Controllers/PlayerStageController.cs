@@ -19,19 +19,31 @@
 ﻿            _playerManager = manager;
 ﻿            _playerChapterService = playerChapterService;
 ﻿        }
-﻿        [HttpPost("changed")]
-﻿        public IActionResult StageChanged(ChapterDTO chapter)
+﻿        [HttpPost("chapter-changed")]
+﻿        public ActionResult<ChapterDTO> ChapterChanged(ChangeChapterDTO chapter)
 ﻿        {
 ﻿            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 ﻿            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
 ﻿            {
 ﻿                Player player = _playerManager.GetPlayer(val);
-﻿                bool success = _playerChapterService.ChapterChanged(player, chapter.Chapter, chapter.Stage);
-﻿                return success ? Ok() : BadRequest();
+﻿                ChapterDTO dto = _playerChapterService.ChapterChanged(player, chapter.Chapter);
+                return dto;
 ﻿            }
 ﻿            return Unauthorized();
 ﻿        }
-﻿        [HttpPost("enemy-dead")]
+        [HttpPost("stage-changed")]
+        public ActionResult<ChapterDTO> StageChanged(ChangeStageDTO chapter)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
+            {
+                Player player = _playerManager.GetPlayer(val);
+                ChapterDTO dto = _playerChapterService.StageChanged(player, chapter.Stage);
+                return dto;
+            }
+            return Unauthorized();
+        }
+        [HttpPost("enemy-dead")]
 ﻿        public IActionResult EnemyDead(EnemyDeadDTO enemyDead)
 ﻿        {
 ﻿            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);

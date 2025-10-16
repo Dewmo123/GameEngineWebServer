@@ -26,8 +26,7 @@ namespace BLL.Services.Players
             try
             {
                 player.rwLock.EnterWriteLock();
-                // Assuming DefaultSetting.partners exists, similar to DefaultSetting.skills
-                if (string.IsNullOrEmpty(partnerName) /*|| !DefaultSetting.partners.Contains(partnerName)*/)
+                if (!DefaultSetting.partners.Contains(partnerName))
                     return false;
                 if (!player.Partners.ContainsKey(partnerName)) 
                     return false;
@@ -63,8 +62,7 @@ namespace BLL.Services.Players
             try
             {
                 player.rwLock.EnterWriteLock();
-                // Assuming DefaultSetting.partners exists, similar to DefaultSetting.skills
-                if (player.Partners.ContainsKey(partner.PartnerName) /*|| !DefaultSetting.partners.Contains(partner.PartnerName)*/)
+                if (player.Partners.ContainsKey(partner.PartnerName) || !DefaultSetting.partners.Contains(partner.PartnerName))
                     return;
                 player.Partners.Add(partner.PartnerName, partner);
             }

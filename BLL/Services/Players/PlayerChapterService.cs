@@ -1,20 +1,24 @@
 using BLL.Caching;
+using BLL.DTOs;
+using DAL.Utiles;
 
 namespace BLL.Services.Players
 {
     public class PlayerChapterService : IPlayerChapterService
     {
-        public bool ChapterChanged(Player player, int chapter, int stage)
+        public ChapterDTO ChapterChanged(Player player, int chapter)
         {
             try
             {
                 player.rwLock.EnterWriteLock();
-                if (chapter <= 0 || stage <= 0)
-                    return false;
-                player.Chapter.Chapter = chapter;
-                player.Chapter.Stage = stage;
-                player.Chapter.EnemyCount = 0;
-                return true;
+                ChapterDTO dto = player.Chapter;
+                if (chapter > 0)
+                {
+                    dto.Chapter += chapter;
+                    dto.Stage = 1;
+                    dto.EnemyCount = 0;
+                }
+                return Extensions.DeepClone(dto);
             }
             finally
             {
@@ -29,6 +33,25 @@ namespace BLL.Services.Players
                 player.rwLock.EnterWriteLock();
                 player.Chapter.EnemyCount += count;
                 Console.WriteLine(player.Chapter.EnemyCount);
+            }
+            finally
+            {
+                player.rwLock.ExitWriteLock();
+            }
+        }
+
+        public ChapterDTO StageChanged(Player player, int stage)
+        {
+            try
+            {
+                player.rwLock.EnterWriteLock();
+                ChapterDTO dto = player.Chapter;
+                if (stage > 0)
+                {
+                    dto.Stage += stage;
+                    dto.EnemyCount = 0;
+                }
+                return Extensions.DeepClone(dto);
             }
             finally
             {
