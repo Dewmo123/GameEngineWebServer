@@ -24,6 +24,7 @@ namespace BLL.Caching
             Skills = playerInfo.Skills!;
             Partners = playerInfo.Partners!;
             SkillEquips = playerInfo.SkillEquips!;
+            PartnerEquips = playerInfo.PartnerEquips!;
         }
         
         public PlayerDTO GetCopyDTO()
@@ -38,7 +39,8 @@ namespace BLL.Caching
                     Skills = new(Skills),
                     Stats = new(Stats),
                     Partners = new(Partners),
-                    SkillEquips = SkillEquips.ToArray()
+                    SkillEquips = SkillEquips.ToArray(),
+                    PartnerEquips = PartnerEquips.ToArray()
                 };
                 return playerDTO;
             }

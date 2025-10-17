@@ -48,6 +48,7 @@ namespace BLL.Services.Players
                     return false;
                 if (!string.IsNullOrEmpty(partnerName) && !player.Partners.ContainsKey(partnerName))
                     return false;
+                Console.WriteLine(partnerName);
                 player.PartnerEquips[idx] = partnerName;
                 return true;
             }

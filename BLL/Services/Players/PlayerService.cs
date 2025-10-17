@@ -30,9 +30,23 @@ namespace BLL.Services.Players
                 await GetOrAddChapter(id, uow, playerDTO);
                 await GetPartners(id, uow, playerDTO);
                 await GetOrAddSkillEquip(id, uow, playerDTO);
+                await GetOrAddPartnerEquip(id, uow, playerDTO);
                 return playerDTO;
             }
         }
+
+        private async Task GetOrAddPartnerEquip(int id, IUnitOfWork uow, PlayerDTO playerDTO)
+        {
+            List<PartnerEquipVO> vos = await uow.PartnerEquip.GetPartnerEquips(id);
+            foreach (var item in vos)
+                playerDTO.PartnerEquips[item.Idx] = item.PartnerName;
+            if (vos.Count == 0)
+            {
+                foreach (var item in DefaultSetting.defaultPartnerEquip)
+                    await uow.PartnerEquip.AddPartnerEquip(id, item, "");
+            }
+        }
+
         private async Task GetOrAddStats(int id, IUnitOfWork uow, PlayerDTO playerDTO)
         {
             List<StatVO> statVOs = await uow.Stat.GetStats(id);
@@ -115,12 +129,24 @@ namespace BLL.Services.Players
                 success &= await UpdateChapter(id, playerDTO.Chapter, uow.Chapter);
                 success &= await UpdatePartners(id, playerDTO.Partners, uow.Partner);
                 success &= await UpdateSkillEquip(id, playerDTO.SkillEquips, uow.SkillEquip);
+                success &= await UpdatePatnerEquip(id, playerDTO.PartnerEquips, uow.PartnerEquip);
                 if (!success)
                     await uow.RollbackAsync();
                 return success;
             }
         }
         #region Update Region
+        private async Task<bool> UpdatePatnerEquip(int id, string?[] partnerEquips, IPartnerEquipRepository partnerEquip)
+        {
+            bool success = true;
+            for (int i = 0; i < partnerEquips.Length; i++)
+            {
+                int affected = 0;
+                affected = await partnerEquip.UpdatePartnerEquip(id, i, partnerEquips[i]);
+                success &= affected == 1;
+            }
+            return success;
+        }
         private async Task<bool> UpdateStats(int id, Dictionary<StatType, int> stats, IStatRepository statRepo)
         {
             bool success = true;
