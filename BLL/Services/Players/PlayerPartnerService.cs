@@ -21,16 +21,21 @@ namespace BLL.Services.Players
             }
         }
 
-        public bool ChangePartner(Player player, string partnerName, int amount)
+        public bool AddPartnerAmount(Player player, string partnerName, int amount)
         {
             try
             {
                 player.rwLock.EnterWriteLock();
                 if (!DefaultSetting.partners.Contains(partnerName))
                     return false;
-                if (!player.Partners.ContainsKey(partnerName)) 
-                    return false;
-                player.Partners[partnerName].Amount += amount;
+                if (player.Partners.ContainsKey(partnerName))
+                    player.Partners[partnerName].Amount += amount;
+                else
+                    player.Partners.Add(partnerName, new()
+                    {
+                        Amount = amount,
+                        PartnerName = partnerName
+                    });
                 return true;
             }
             finally

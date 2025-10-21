@@ -19,14 +19,14 @@ namespace WebChattingServer.Controllers
             _playerManager = playerManager;
             _playerSkillService = playerSkillService;
         }
-        [HttpPost("changed")]
-        public IActionResult SkillChanged(SkillAmountDTO skillDTO)//AddAmount로 변경 필요
+        [HttpPost("add-amount")]
+        public IActionResult AddSkillAmount(SkillAmountDTO skillDTO)//AddAmount로 변경 필요
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
                 Player player = _playerManager.GetPlayer(val);
-                bool success = _playerSkillService.ChangeSkill(player, skillDTO.SkillName,skillDTO.Amount);
+                bool success = _playerSkillService.AddSkillAmount(player, skillDTO.SkillName,skillDTO.Amount);
                 return success ? Ok() : BadRequest();
             }
             return Unauthorized();

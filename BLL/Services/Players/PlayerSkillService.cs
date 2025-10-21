@@ -21,14 +21,17 @@ namespace BLL.Services.Players
             }
         }
 
-        public bool ChangeSkill(Player player, string skillName, int amount)
+        public bool AddSkillAmount(Player player, string skillName, int amount)
         {
             try
             {
                 player.rwLock.EnterWriteLock();
                 if (string.IsNullOrEmpty(skillName) || !DefaultSetting.skills.Contains(skillName))
                     return false;
-                player.Skills[skillName].Amount += amount;
+                if (player.Skills.ContainsKey(skillName))
+                    player.Skills[skillName].Amount += amount;
+                else
+                    player.Skills.Add(skillName, new() { SkillName = skillName, Amount = amount });
                 return true;
             }
             finally

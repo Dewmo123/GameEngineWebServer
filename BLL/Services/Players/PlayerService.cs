@@ -34,7 +34,7 @@ namespace BLL.Services.Players
                 return playerDTO;
             }
         }
-
+        #region getoradd
         private async Task GetOrAddPartnerEquip(int id, IUnitOfWork uow, PlayerDTO playerDTO)
         {
             List<PartnerEquipVO> vos = await uow.PartnerEquip.GetPartnerEquips(id);
@@ -118,6 +118,7 @@ namespace BLL.Services.Players
                     await uow.SkillEquip.AddSkillEquip(id, item, "");
             }
         }
+        #endregion
         public async Task<bool> UpdatePlayer(int id, PlayerDTO playerDTO)
         {
             await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())

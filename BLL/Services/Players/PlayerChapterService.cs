@@ -46,7 +46,7 @@ namespace BLL.Services.Players
             {
                 player.rwLock.EnterWriteLock();
                 ChapterDTO dto = player.Chapter;
-                if (stage > 0)
+                if (stage + dto.Stage > 0)
                 {
                     dto.Stage += stage;
                     dto.EnemyCount = 0;

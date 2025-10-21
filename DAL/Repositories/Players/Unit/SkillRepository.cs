@@ -25,8 +25,8 @@ namespace DAL.Repositories.Players.Unit
 
         public async Task<int> UpdateSkill(int id, string skillName, int level, int upgrade, int amount)
         {
-            string query = "UPDATE PlayerSkill SET SkillName = @skillName, Level = @level, Upgrade = @upgrade, Amount = @amount WHERE Id = @id";
-            return await _connection.ExecuteAsync(sql: query, new { skillName, level, upgrade, amount, id });
+            string query = "UPDATE PlayerSkill SET Level = @level, Upgrade = @upgrade, Amount = @amount WHERE Id = @id AND SkillName = @skillName";
+            return await _connection.ExecuteAsync(sql: query, new { level, upgrade, amount, id, skillName });
         }
     }
 }

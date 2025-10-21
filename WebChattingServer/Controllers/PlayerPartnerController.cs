@@ -21,14 +21,14 @@ namespace WebChattingServer.Controllers
             _playerPartnerService = playerPartnerService;
         }
 
-        [HttpPost("changed")]
-        public IActionResult PartnerChanged(PartnerAmountDTO partnerDTO)
+        [HttpPost("add-amount")]
+        public IActionResult AddPartnerAmount(PartnerAmountDTO partnerDTO)
         {
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
                 Player player = _playerManager.GetPlayer(val);
-                bool success = _playerPartnerService.ChangePartner(player, partnerDTO.PartnerName, partnerDTO.Amount);
+                bool success = _playerPartnerService.AddPartnerAmount(player, partnerDTO.PartnerName, partnerDTO.Amount);
                 return success ? Ok() : BadRequest();
             }
             return Unauthorized();

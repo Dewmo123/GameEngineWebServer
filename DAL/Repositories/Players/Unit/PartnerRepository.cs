@@ -25,8 +25,8 @@ namespace DAL.Repositories.Players.Unit
 
         public async Task<int> UpdatePartner(int id, string partnerName, int level, int upgrade, int amount)
         {
-            string query = "UPDATE PlayerPartner SET PartnerName = @partnerName, Level = @level, Upgrade = @upgrade, Amount = @amount WHERE Id = @id";
-            return await _connection.ExecuteAsync(sql: query, new { partnerName, level, upgrade, amount, id });
+            string query = "UPDATE PlayerPartner SET Level = @level, Upgrade = @upgrade, Amount = @amount WHERE Id = @id AND PartnerName = @partnerName";
+            return await _connection.ExecuteAsync(sql: query, new { level, upgrade, amount, id, partnerName });
         }
     }
 }
