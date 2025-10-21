@@ -5,15 +5,18 @@ namespace BLL.Services.Players
 {
     public class PlayerPartnerService : IPlayerPartnerService
     {
-        public void LevelUpPartner(Player player, string partnerName, int level)
+        public bool LevelUpPartner(Player player, string partnerName, int level)
         {
             try
             {
                 player.rwLock.EnterWriteLock();
                 if (!player.Partners.ContainsKey(partnerName))
-                    return;
+                    return false;
+                if (player.Partners[partnerName].Level + level < 0)
+                    return false;
                 PartnerDTO dto = player.Partners[partnerName];
                 dto.Level += level;
+                return true;
             }
             finally
             {

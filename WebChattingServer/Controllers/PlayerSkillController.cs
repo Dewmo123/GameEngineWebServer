@@ -19,6 +19,18 @@ namespace WebChattingServer.Controllers
             _playerManager = playerManager;
             _playerSkillService = playerSkillService;
         }
+        [HttpPost("level-up")]
+        public IActionResult LevelUpSkill(LevelUpSkillDTO skillDTO)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
+            {
+                Player player = _playerManager.GetPlayer(val);
+                bool success = _playerSkillService.LevelUpSkill(player, skillDTO.SkillName, skillDTO.Level);
+                return success ? Ok() : BadRequest();
+            }
+            return Unauthorized();
+        }
         [HttpPost("add-amount")]
         public IActionResult AddSkillAmount(SkillAmountDTO skillDTO)//AddAmount로 변경 필요
         {

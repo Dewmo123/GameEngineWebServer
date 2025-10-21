@@ -20,4 +20,10 @@ namespace BLL.DTOs
         public int Idx { get; set; }
         public string? SkillName { get; set; }
     }
+    public record class LevelUpSkillDTO
+    {
+        public string? SkillName { get; set; }
+        public int Level { get; set; }
+
+    }
 }

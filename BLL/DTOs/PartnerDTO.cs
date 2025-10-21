@@ -13,6 +13,11 @@ namespace BLL.DTOs
         public string? PartnerName { get; set; }
         public int Amount { get; set; }
     }
+    public record class LevelUpPartnerDTO
+    {
+        public string? PartnerName { get; set; }
+        public int Level { get; set; }
+    }
 
     public record class PartnerEquipDTO
     {

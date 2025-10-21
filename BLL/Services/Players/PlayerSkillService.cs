@@ -5,15 +5,18 @@ namespace BLL.Services.Players
 {
     public class PlayerSkillService : IPlayerSkillService
     {
-        public void LevelUpSkill(Player player, string skillName, int level)
+        public bool LevelUpSkill(Player player, string skillName, int level)
         {
             try
             {
                 player.rwLock.EnterWriteLock();
                 if (!player.Skills.ContainsKey(skillName))
-                    return;
+                    return false;
+                if (player.Skills[skillName].Level + level < 0)
+                    return false;
                 SkillDTO dto = player.Skills[skillName];
                 dto.Level += level;
+                return true;
             }
             finally
             {

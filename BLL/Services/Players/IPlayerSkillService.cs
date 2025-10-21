@@ -5,7 +5,7 @@ namespace BLL.Services.Players
 {
     public interface IPlayerSkillService
     {
-        void LevelUpSkill(Player player, string skillName, int level);
+        bool LevelUpSkill(Player player, string skillName, int level);
         bool AddSkillAmount(Player player, string skillName, int amount);
         bool EquipSkill(Player player, int idx, string? skillName);
         void AddSkill(Player player, SkillDTO skill);
