@@ -12,7 +12,7 @@ namespace BLL.UoW
 {
     public class UnitOfWork : IUnitOfWork
     {
-        static string connectionString = "Server=127.0.0.1;Port=3306;Database=summer_db;Uid=root;Pwd=1652;Pooling=true";
+        public static string? connectionString;
         private IAuthorizeRepository? _auth;
         private IRoleRepository? _role;
         private IStatRepository? _stat;
@@ -43,6 +43,8 @@ namespace BLL.UoW
         }
         public static async Task<IUnitOfWork> CreateUoWAsync()
         {
+            if (string.IsNullOrEmpty(connectionString))
+                throw new NullReferenceException();
             var connection = new MySqlConnection(connectionString);
             await connection.OpenAsync();
             var transaction = await connection.BeginTransactionAsync();

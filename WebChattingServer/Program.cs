@@ -2,6 +2,7 @@ using BLL.Caching;
 using BLL.DTOs;
 using BLL.Services.Authorizes;
 using BLL.Services.Players;
+using BLL.UoW;
 using DAL.VOs;
 using WebChattingServer.Hubs;
 
@@ -43,6 +44,7 @@ namespace WebChattingServer
             string? connection = builder.Configuration.GetConnectionString("MySql");
             if (string.IsNullOrEmpty(connection))
                 throw new NullReferenceException();
+            UnitOfWork.connectionString = connection;
             AdClasses(builder);
             builder.Services.AddControllers();
             builder.WebHost.ConfigureKestrel(options =>
