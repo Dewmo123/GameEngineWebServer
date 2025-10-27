@@ -37,6 +37,7 @@ namespace WebChattingServer.Controllers
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
             {
+                Console.WriteLine(skillDTO.SkillName);
                 Player player = _playerManager.GetPlayer(val);
                 bool success = _playerSkillService.AddSkillAmount(player, skillDTO.SkillName,skillDTO.Amount);
                 return success ? Ok() : BadRequest();

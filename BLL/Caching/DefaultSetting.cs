@@ -22,7 +22,12 @@ namespace BLL.Caching
         };
         public static readonly HashSet<string> skills = new()
         {
-            "ReaperSkill"
+            "ReaperSkill",
+            "BombSkill",
+            "FireballSkill",
+            "ShunraiSkill",
+            "ReaperSmashSkill",
+            "WaveSkill"
         };
         public static readonly HashSet<string> partners = new()
         {

@@ -41,6 +41,18 @@ namespace WebChattingServer.Controllers
                 return BadRequest(new { Message = "Login Failed" });
             }
         }
+        [HttpDelete("log-out")]
+        public async Task<IActionResult> LogOut()
+        {
+
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id))
+            {
+                await HttpContext.SignOutAsync("UserKey");
+                return Ok();
+            }
+            return NoContent();
+        }
         [HttpPost("sign-up")]
         public async Task<IActionResult> SignUp(CreateUserDTO createUser)
         {
