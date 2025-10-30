@@ -66,14 +66,20 @@ namespace BLL.Services.Players
             }
         }
 
-        public void AddPartner(Player player, PartnerDTO partner)
+        public bool SetUpgradeAndAmount(Player player, string? partnerName, int amount, int upgrade)
         {
             try
             {
                 player.rwLock.EnterWriteLock();
-                if (player.Partners.ContainsKey(partner.PartnerName) || !DefaultSetting.partners.Contains(partner.PartnerName))
-                    return;
-                player.Partners.Add(partner.PartnerName, partner);
+                if (string.IsNullOrEmpty(partnerName))
+                    return false;
+                else if (player.Partners.TryGetValue(partnerName, out PartnerDTO? dto))
+                {
+                    dto.Amount = amount;
+                    dto.Upgrade = upgrade;
+                    return true;
+                }
+                return false;
             }
             finally
             {

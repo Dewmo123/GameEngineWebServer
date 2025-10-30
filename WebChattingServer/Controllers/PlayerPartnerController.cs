@@ -58,5 +58,17 @@ namespace WebChattingServer.Controllers
             }
             return Unauthorized();
         }
+        [HttpPost("set-upgrade-and-amount")]
+        public IActionResult SetUpgradeAndAmount(SetAmountAndUpgradeDTO dto)
+        {
+            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
+            {
+                Player player = _playerManager.GetPlayer(val);
+                bool success = _playerPartnerService.SetUpgradeAndAmount(player,dto.PartnerName, dto.Amount, dto.Upgrade);
+                return success ? Ok() : BadRequest();
+            }
+            return Unauthorized();
+        }
     }
 }

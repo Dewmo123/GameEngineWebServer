@@ -27,7 +27,9 @@ namespace BLL.Caching
             "FireballSkill",
             "ShunraiSkill",
             "ReaperSmashSkill",
-            "WaveSkill"
+            "WaveSkill",
+            "HammerSkill",
+            "FireballSkill"
         };
         public static readonly HashSet<string> partners = new()
         {
