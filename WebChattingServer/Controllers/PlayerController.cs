@@ -27,6 +27,7 @@ namespace WebChattingServer.Controllers
             {
                 PlayerDTO? playerInfo = await _playerService.GetPlayerInfos(val);
                 if (playerInfo == null) return default;
+                playerInfo.Id = id;
                 bool success = _playerManager.AddPlayer(val, playerInfo);
                 Console.WriteLine($"AddPlayer: {success}");
                 return playerInfo;
