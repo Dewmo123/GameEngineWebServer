@@ -61,14 +61,20 @@ namespace BLL.Services.Players
             }
         }
 
-        public void AddSkill(Player player, SkillDTO skill)
+        public bool SetUpgradeAndAmount(Player player, string? partnerName, int amount, int upgrade)
         {
             try
             {
                 player.rwLock.EnterWriteLock();
-                if (player.Skills.ContainsKey(skill.SkillName) || !DefaultSetting.skills.Contains(skill.SkillName))
-                    return;
-                player.Skills.Add(skill.SkillName, skill);
+                if (string.IsNullOrEmpty(partnerName))
+                    return false;
+                else if (player.Skills.TryGetValue(partnerName, out SkillDTO? dto))
+                {
+                    dto.Amount = amount;
+                    dto.Upgrade = upgrade;
+                    return true;
+                }
+                return false;
             }
             finally
             {
