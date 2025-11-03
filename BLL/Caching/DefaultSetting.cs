@@ -27,13 +27,20 @@ namespace BLL.Caching
             "FireballSkill",
             "ShunraiSkill",
             "ReaperSmashSkill",
-            "WaveSkill",
             "HammerSkill",
-            "FireballSkill"
+            "FireballSkill",
+            "LavaGolemSkill"
         };
         public static readonly HashSet<string> partners = new()
         {
-            "Axer"
+            "Axer",
+            "Riven",
+            "Mooni",
+            "BigAxer",
+            "Riven",
+            "BigMooni",
+            "Reaper",
+            "BigReaper"
         };
         public static readonly int skillEquipLength = 6;
         public static readonly int partnerEquipLength = 6;
