@@ -18,13 +18,13 @@ namespace BLL.Caching
         {
             rwLock = new();
             Id = id;
-            Chapter = playerInfo.Chapter!;
-            Stats = playerInfo.Stats!;
-            Goods = playerInfo.Goods!;
-            Skills = playerInfo.Skills!;
-            Partners = playerInfo.Partners!;
-            SkillEquips = playerInfo.SkillEquips!;
-            PartnerEquips = playerInfo.PartnerEquips!;
+            Chapter = playerInfo.Chapter;
+            Stats = playerInfo.Stats;
+            Goods = playerInfo.Goods;
+            Skills = playerInfo.Skills;
+            Partners = playerInfo.Partners;
+            SkillEquips = playerInfo.SkillEquips;
+            PartnerEquips = playerInfo.PartnerEquips;
         }
         
         public PlayerDTO GetCopyDTO()

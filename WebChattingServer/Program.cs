@@ -1,10 +1,12 @@
-using BLL.Caching;
+﻿using BLL.Caching;
 using BLL.DTOs;
 using BLL.Services.Authorizes;
 using BLL.Services.Players;
+using BLL.Services.Players.Persistence;
+using BLL.Services.Players.Persistence.Sections;
+using BLL.Services.Players.Session;
 using BLL.UoW;
 using DAL.VOs;
-using WebChattingServer.Hubs;
 
 namespace WebChattingServer
 {
@@ -44,6 +46,7 @@ namespace WebChattingServer
             string? connection = builder.Configuration.GetConnectionString("MySql");
             if (string.IsNullOrEmpty(connection))
                 throw new NullReferenceException();
+
             UnitOfWork.connectionString = connection;
             AdClasses(builder);
             builder.Services.AddControllers();
@@ -52,6 +55,7 @@ namespace WebChattingServer
                 options.ListenAnyIP(3303);
             });
             builder.WebHost.UseKestrel();
+
             var app = builder.Build();
             app.UseRouting();
             app.UseAuthentication();
@@ -60,20 +64,27 @@ namespace WebChattingServer
 
             app.Use(async (ctx, next) =>
             {
-                Console.WriteLine("��û: " + ctx.Request.Path);
+                Console.WriteLine("Request: " + ctx.Request.Path);
                 await next();
             });
+
             app.MapControllers();
-            //app.MapControllerRoute("default", "{controller=authorize}/{action=test}");
-            app.MapHub<ChatHub>("/chat");
             app.Run();
         }
 
         private static void AdClasses(WebApplicationBuilder builder)
         {
             builder.Services.AddTransient<IAuthorizeService, AuthorizeService>();
-            builder.Services.AddTransient<IPlayerService, PlayerService>();
             builder.Services.AddSingleton<IPlayerManager, PlayerManager>();
+            builder.Services.AddTransient<IPlayerSessionService, PlayerSessionService>();
+            builder.Services.AddTransient<IPlayerPersistenceService, PlayerPersistenceService>();
+            builder.Services.AddTransient<IPlayerPersistenceSection, PlayerStatPersistenceSection>();
+            builder.Services.AddTransient<IPlayerPersistenceSection, PlayerGoodsPersistenceSection>();
+            builder.Services.AddTransient<IPlayerPersistenceSection, PlayerSkillPersistenceSection>();
+            builder.Services.AddTransient<IPlayerPersistenceSection, PlayerChapterPersistenceSection>();
+            builder.Services.AddTransient<IPlayerPersistenceSection, PlayerPartnerPersistenceSection>();
+            builder.Services.AddTransient<IPlayerPersistenceSection, PlayerSkillEquipPersistenceSection>();
+            builder.Services.AddTransient<IPlayerPersistenceSection, PlayerPartnerEquipPersistenceSection>();
             builder.Services.AddTransient<IPlayerChapterService, PlayerChapterService>();
             builder.Services.AddTransient<IPlayerGoodsService, PlayerGoodsService>();
             builder.Services.AddTransient<IPlayerStatService, PlayerStatService>();
@@ -92,6 +103,7 @@ namespace WebChattingServer
                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
                     options.ExpireTimeSpan = TimeSpan.FromSeconds(3600 * 24 * 7);
                 });
+
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("IsAdmin",

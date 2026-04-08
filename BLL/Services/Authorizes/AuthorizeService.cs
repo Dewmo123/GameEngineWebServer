@@ -1,30 +1,40 @@
-﻿using AutoMapper;
+using AutoMapper;
 using BLL.DTOs;
 using BLL.UoW;
+using DAL.Repositories.Authorizes;
 using DAL.VOs;
 
 namespace BLL.Services.Authorizes
 {
     public class AuthorizeService : IAuthorizeService
     {
-        IMapper _mapper;
+        private readonly IMapper _mapper;
+
         public AuthorizeService(IMapper mapper)
         {
             _mapper = mapper;
         }
+
         public async Task<LoginUserDTO?> LogIn(LoginDTO loginDTO)
         {
+            if (string.IsNullOrWhiteSpace(loginDTO.UserId) || string.IsNullOrWhiteSpace(loginDTO.Password))
+                return null;
+
             await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
             {
-                LoginVO? login = await uow.Auth.GetUser(loginDTO.UserId, loginDTO.Password);
+                IAuthorizeRepository authorizeRepository = uow.GetRepository<IAuthorizeRepository, AuthorizeRepository>();
+                IRoleRepository roleRepository = uow.GetRepository<IRoleRepository, RoleRepository>();
+
+                LoginVO? login = await authorizeRepository.GetUser(loginDTO.UserId, loginDTO.Password);
                 if (login == null)
                 {
                     Console.WriteLine("Wrong user");
                     return null;
                 }
+
                 Console.WriteLine(loginDTO.UserId);
                 LoginUserDTO user = _mapper.Map<LoginVO, LoginUserDTO>(login);
-                List<UserRoleVO> roles = await uow.Role.GetUserRoles(login.Id);
+                List<UserRoleVO> roles = await roleRepository.GetUserRoles(login.Id);
                 user.Roles = roles.Select(item => item.Role).ToList();
                 return user;
             }
@@ -32,18 +42,26 @@ namespace BLL.Services.Authorizes
 
         public async Task<bool> SignUp(CreateUserDTO createUserDTO)
         {
+            if (string.IsNullOrWhiteSpace(createUserDTO.UserId) || string.IsNullOrWhiteSpace(createUserDTO.Password))
+                return false;
+
             await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
             {
-                LoginVO? loginVO = await uow.Auth.GetUser(createUserDTO.UserId, createUserDTO.Password);
+                IAuthorizeRepository authorizeRepository = uow.GetRepository<IAuthorizeRepository, AuthorizeRepository>();
+                IRoleRepository roleRepository = uow.GetRepository<IRoleRepository, RoleRepository>();
+
+                LoginVO? loginVO = await authorizeRepository.GetUser(createUserDTO.UserId, createUserDTO.Password);
                 if (loginVO != null)
                     return false;
-                int id = await uow.Auth.AddUser(createUserDTO.UserId, createUserDTO.Password);
-                int affected = await uow.Role.AddRole(id, Role.User);
-                if (affected == 0)
+
+                int id = await authorizeRepository.AddUser(createUserDTO.UserId, createUserDTO.Password);
+                if (await roleRepository.AddRole(id, Role.User) != 1)
                 {
                     await uow.RollbackAsync();
                     return false;
                 }
+
+                await uow.CommitAsync();
                 return true;
             }
         }
