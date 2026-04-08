@@ -1,60 +1,44 @@
-﻿using BLL.Caching;
-﻿using BLL.DTOs;
-﻿using BLL.Services.Players;
-﻿using Microsoft.AspNetCore.Authorization;
-﻿using Microsoft.AspNetCore.Mvc;
-﻿using System.Security.Claims;
-﻿
-﻿namespace WebChattingServer.Controllers
-﻿{
-﻿    [Authorize]
-﻿    [ApiController]
-﻿    [Route("player/stage")]
-﻿    public class PlayerStageController : ControllerBase
-﻿    {
-﻿        private readonly IPlayerManager _playerManager;
-﻿        private readonly IPlayerChapterService _playerChapterService;
-﻿        public PlayerStageController(IPlayerManager manager, IPlayerChapterService playerChapterService)
-﻿        {
-﻿            _playerManager = manager;
-﻿            _playerChapterService = playerChapterService;
-﻿        }
-﻿        [HttpPost("chapter-changed")]
-﻿        public ActionResult<ChapterDTO> ChapterChanged(ChangeChapterDTO chapter)
-﻿        {
-﻿            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-﻿            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-﻿            {
-﻿                Player player = _playerManager.GetPlayer(val);
-﻿                ChapterDTO dto = _playerChapterService.ChapterChanged(player, chapter.Chapter);
-                return dto;
-﻿            }
-﻿            return Unauthorized();
-﻿        }
-        [HttpPost("stage-changed")]
-        public ActionResult<ChapterDTO> StageChanged(ChangeStageDTO chapter)
+using BLL.DTOs;
+using BLL.Services.Players.Application;
+using Microsoft.AspNetCore.Mvc;
+
+namespace WebChattingServer.Controllers
+{
+    [Route("player/stage")]
+    public class PlayerStageController : PlayerApiControllerBase
+    {
+        private readonly IPlayerApplicationService _playerApplicationService;
+
+        public PlayerStageController(IPlayerApplicationService playerApplicationService)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                ChapterDTO dto = _playerChapterService.StageChanged(player, chapter.Stage);
-                return dto;
-            }
-            return Unauthorized();
+            _playerApplicationService = playerApplicationService;
         }
+
+        [HttpPost("chapter-changed")]
+        public async Task<IActionResult> ChapterChanged([FromBody] ChangeChapterDTO chapter)
+        {
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.ChangeChapterAsync(playerId, chapter));
+        }
+
+        [HttpPost("stage-changed")]
+        public async Task<IActionResult> StageChanged([FromBody] ChangeStageDTO chapter)
+        {
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.ChangeStageAsync(playerId, chapter));
+        }
+
         [HttpPost("enemy-dead")]
-﻿        public IActionResult EnemyDead(EnemyDeadDTO enemyDead)
-﻿        {
-﻿            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-﻿            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-﻿            {
-﻿                Player player = _playerManager.GetPlayer(val);
-﻿                _playerChapterService.EnemyDead(player, enemyDead.EnemyCount);
-﻿                return Ok();
-﻿            }
-﻿            return Unauthorized();
-﻿        }
-﻿    }
-﻿}
-﻿
+        public async Task<IActionResult> EnemyDead([FromBody] EnemyDeadDTO enemyDead)
+        {
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.EnemyDeadAsync(playerId, enemyDead));
+        }
+    }
+}

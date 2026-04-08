@@ -13,19 +13,19 @@ namespace DAL.Repositories.Players.Chapter
         public Task<int> AddChapter(int id, int chapter, int stage,int enemyCount)
         {
             string query = "INSERT INTO PlayerChapterData (Id,Chapter,Stage,EnemyCount) VALUES(@id,@chapter,@stage,@enemyCount)";
-            return _connection.ExecuteAsync(sql: query, new { id, chapter, stage,enemyCount });
+            return _connection.ExecuteAsync(sql: query, new { id, chapter, stage,enemyCount }, _transaction);
         }
 
         public async Task<ChapterVO?> GetChapter(int id)
         {
             string query = "SELECT * FROM PlayerChapterData WHERE Id = @id";
-            return await _connection.QueryFirstOrDefaultAsync<ChapterVO>(sql: query, new { id });
+            return await _connection.QueryFirstOrDefaultAsync<ChapterVO>(sql: query, new { id }, _transaction);
         }
 
         public Task<int> UpdateChapter(int id, int chapter, int stage,int enemyCount)
         {
             string query = "UPDATE PlayerChapterData SET Chapter = @chapter, Stage = @stage, EnemyCount = @enemyCount WHERE Id = @id";
-            return _connection.ExecuteAsync(sql: query, new { chapter, stage,enemyCount, id });
+            return _connection.ExecuteAsync(sql: query, new { chapter, stage,enemyCount, id }, _transaction);
         }
     }
 }

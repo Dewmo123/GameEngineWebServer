@@ -1,65 +1,71 @@
-﻿using BLL.DTOs;
+using BLL.Common.Results;
+using BLL.DTOs;
 using BLL.Services.Authorizes;
+using BLL.Services.Players.Application;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace WebChattingServer.Controllers
 {
-    [ApiController]
     [Route("authorize")]
-    public class AuthorizeController : ControllerBase
+    public class AuthorizeController : ApiResultControllerBase
     {
         private readonly IAuthorizeService _authorizeService;
-        public AuthorizeController(IAuthorizeService service)
+        private readonly IPlayerApplicationService _playerApplicationService;
+
+        public AuthorizeController(IAuthorizeService authorizeService, IPlayerApplicationService playerApplicationService)
         {
-            _authorizeService = service;
+            _authorizeService = authorizeService;
+            _playerApplicationService = playerApplicationService;
         }
 
         [HttpPost("log-in")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
-            Console.WriteLine($"Receive Login Request for {loginDTO.UserId}");
-            LoginUserDTO? user = await _authorizeService.LogIn(loginDTO);
-            if (user != null)
-            {
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserId),
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-                };
-                user.Roles.ForEach(role => claims.Add(new Claim(ClaimTypes.Role, role.ToString())));
+            Result<LoginUserDTO> loginResult = await _authorizeService.LogIn(loginDTO);
+            if (!loginResult.Succeeded)
+                return ToActionResult(loginResult);
 
-                var claimsIdentity = new ClaimsIdentity(claims, "UserKey");
-                var authProperties = new AuthenticationProperties { IsPersistent = true };
-                await HttpContext.SignInAsync("UserKey", new ClaimsPrincipal(claimsIdentity), authProperties);
-                return Ok(new { Message = "Login successful", UserId = user.UserId });
-            }
-            else
-            {
-                Console.WriteLine("Non-Valid User");
-                return BadRequest(new { Message = "Login Failed" });
-            }
+            LoginUserDTO user = loginResult.Value!;
+
+            List<Claim> claims =
+            [
+                new Claim(ClaimTypes.Name, user.UserId),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            ];
+
+            foreach (var role in user.Roles)
+                claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+
+            ClaimsIdentity claimsIdentity = new(claims, "UserKey");
+            AuthenticationProperties authProperties = new() { IsPersistent = true };
+            await HttpContext.SignInAsync("UserKey", new ClaimsPrincipal(claimsIdentity), authProperties);
+            return Ok(new { Message = "Login successful", UserId = user.UserId });
         }
+
         [HttpDelete("log-out")]
         public async Task<IActionResult> LogOut()
         {
-
             string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id))
+            if (!string.IsNullOrWhiteSpace(id) && int.TryParse(id, out int playerId))
             {
-                await HttpContext.SignOutAsync("UserKey");
-                return Ok();
+                Result unloadResult = await _playerApplicationService.LogOutAsync(playerId);
+                if (!unloadResult.Succeeded)
+                    return ToActionResult(unloadResult);
             }
-            return NoContent();
+
+            await HttpContext.SignOutAsync("UserKey");
+            return Ok();
         }
+
         [HttpPost("sign-up")]
-        public async Task<IActionResult> SignUp(CreateUserDTO createUser)
+        public async Task<IActionResult> SignUp([FromBody] CreateUserDTO createUser)
         {
-            Console.WriteLine($"SignUp Request: {createUser.UserId}");
-            bool success = await _authorizeService.SignUp(createUser);
-            return success ? Created("", new { Message = "SignUp success" })
-                : BadRequest(new { Message = "Duplicate User" });
+            Result result = await _authorizeService.SignUp(createUser);
+            return result.Succeeded
+                ? Created(string.Empty, new { Message = "Sign up success" })
+                : ToActionResult(result);
         }
     }
 }

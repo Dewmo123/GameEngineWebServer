@@ -1,72 +1,53 @@
-﻿using BLL.Caching;
 using BLL.DTOs;
-using BLL.Services.Players;
-using Microsoft.AspNetCore.Authorization;
+using BLL.Services.Players.Application;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace WebChattingServer.Controllers
 {
-    [Authorize]
-    [ApiController]
     [Route("player/skill")]
-    public class PlayerSkillController : ControllerBase
+    public class PlayerSkillController : PlayerApiControllerBase
     {
-        private readonly IPlayerManager _playerManager;
-        private readonly IPlayerSkillService _playerSkillService;
-        public PlayerSkillController(IPlayerManager playerManager, IPlayerSkillService playerSkillService)
+        private readonly IPlayerApplicationService _playerApplicationService;
+
+        public PlayerSkillController(IPlayerApplicationService playerApplicationService)
         {
-            _playerManager = playerManager;
-            _playerSkillService = playerSkillService;
+            _playerApplicationService = playerApplicationService;
         }
+
         [HttpPost("level-up")]
-        public IActionResult LevelUpSkill(LevelUpSkillDTO skillDTO)
+        public async Task<IActionResult> LevelUpSkill([FromBody] LevelUpSkillDTO skillDTO)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerSkillService.LevelUpSkill(player, skillDTO.SkillName, skillDTO.Level);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.LevelUpSkillAsync(playerId, skillDTO));
         }
+
         [HttpPost("add-amount")]
-        public IActionResult AddSkillAmount(SkillAmountDTO skillDTO)//AddAmount로 변경 필요
+        public async Task<IActionResult> AddSkillAmount([FromBody] SkillAmountDTO skillDTO)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Console.WriteLine(skillDTO.SkillName);
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerSkillService.AddSkillAmount(player, skillDTO.SkillName,skillDTO.Amount);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.AddSkillAmountAsync(playerId, skillDTO));
         }
+
         [HttpPost("equip")]
-        public IActionResult equipSkill(SkillEquipDTO skillDTO)
+        public async Task<IActionResult> EquipSkill([FromBody] SkillEquipDTO skillDTO)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                _playerSkillService.EquipSkill(player, skillDTO.Idx, skillDTO.SkillName);
-                return Ok();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.EquipSkillAsync(playerId, skillDTO));
         }
+
         [HttpPost("set-upgrade-and-amount")]
-        public IActionResult SetUpgradeAndAmount(SetAmountAndUpgradeDTO dto)
+        public async Task<IActionResult> SetUpgradeAndAmount([FromBody] SetSkillAmountAndUpgradeDTO dto)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerSkillService.SetUpgradeAndAmount(player, dto.PartnerName, dto.Amount, dto.Upgrade);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.SetSkillProgressAsync(playerId, dto));
         }
     }
 }

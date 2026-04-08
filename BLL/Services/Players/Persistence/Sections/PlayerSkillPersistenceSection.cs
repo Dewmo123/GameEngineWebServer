@@ -1,46 +1,43 @@
-﻿using AutoMapper;
-using BLL.DTOs;
+﻿using BLL.Common.Results;
+using BLL.Domain.Players;
 using BLL.Services.Players.Persistence;
 using BLL.UoW;
-using DAL.Repositories.Players.Unit;
 using DAL.VOs;
 
 namespace BLL.Services.Players.Persistence.Sections
 {
     public class PlayerSkillPersistenceSection : IPlayerPersistenceSection
     {
-        private readonly IMapper _mapper;
-
-        public PlayerSkillPersistenceSection(IMapper mapper)
+        public async Task LoadAsync(int playerId, PlayerState player, IUnitOfWork unitOfWork)
         {
-            _mapper = mapper;
+            List<SkillVO> skills = await unitOfWork.Skill.GetAllSkills(playerId);
+            player.Skills = skills
+                .Where(item => !string.IsNullOrWhiteSpace(item.SkillName))
+                .ToDictionary(
+                    item => item.SkillName!,
+                    item => new PlayerSkillState
+                    {
+                        Name = item.SkillName!,
+                        Level = item.Level,
+                        Upgrade = item.Upgrade,
+                        Amount = item.Amount
+                    },
+                    StringComparer.Ordinal);
         }
 
-        public async Task LoadAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork)
+        public async Task<Result> SaveAsync(PlayerState player, IUnitOfWork unitOfWork)
         {
-            ISkillRepository skillRepository = unitOfWork.GetRepository<ISkillRepository, SkillRepository>();
-            List<SkillVO> skills = await skillRepository.GetAllSkills(playerId);
-            List<SkillDTO> skillDtos = _mapper.Map<List<SkillVO>, List<SkillDTO>>(skills);
-
-            player.Skills = skillDtos
-                .Where(item => !string.IsNullOrEmpty(item.SkillName))
-                .ToDictionary(item => item.SkillName!, item => item);
-        }
-
-        public async Task<bool> SaveAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork)
-        {
-            ISkillRepository skillRepository = unitOfWork.GetRepository<ISkillRepository, SkillRepository>();
-            foreach ((string skillName, SkillDTO skill) in player.Skills)
+            foreach ((string skillName, PlayerSkillState skill) in player.Skills)
             {
-                int affected = await skillRepository.UpdateSkill(playerId, skillName, skill.Level, skill.Upgrade, skill.Amount);
+                int affected = await unitOfWork.Skill.UpdateSkill(player.Id, skillName, skill.Level, skill.Upgrade, skill.Amount);
                 if (affected == 0)
-                    affected = await skillRepository.AddSkill(playerId, skillName, skill.Level, skill.Upgrade, skill.Amount);
+                    affected = await unitOfWork.Skill.AddSkill(player.Id, skillName, skill.Level, skill.Upgrade, skill.Amount);
 
                 if (affected != 1)
-                    return false;
+                    return Result.PersistenceFailure($"Failed to persist skill '{skillName}'.");
             }
 
-            return true;
+            return Result.Success();
         }
     }
 }

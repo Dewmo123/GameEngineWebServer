@@ -4,8 +4,8 @@ namespace DAL.Repositories
 {
     public abstract class Repository
     {
-        protected MySqlConnection _connection;
-        protected MySqlTransaction _transaction;
+        protected readonly MySqlConnection _connection;
+        protected readonly MySqlTransaction _transaction;
         public Repository(MySqlConnection connection, MySqlTransaction transaction)
         {
             _connection = connection;

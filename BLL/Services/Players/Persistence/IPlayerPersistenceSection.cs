@@ -1,11 +1,12 @@
-﻿using BLL.DTOs;
+using BLL.Common.Results;
+using BLL.Domain.Players;
 using BLL.UoW;
 
 namespace BLL.Services.Players.Persistence
 {
     public interface IPlayerPersistenceSection
     {
-        Task LoadAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork);
-        Task<bool> SaveAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork);
+        Task LoadAsync(int playerId, PlayerState player, IUnitOfWork unitOfWork);
+        Task<Result> SaveAsync(PlayerState player, IUnitOfWork unitOfWork);
     }
 }

@@ -24,6 +24,11 @@ namespace BLL.DTOs
     {
         public string? SkillName { get; set; }
         public int Level { get; set; }
-
+    }
+    public record class SetSkillAmountAndUpgradeDTO
+    {
+        public string? SkillName { get; set; }
+        public int Amount { get; set; }
+        public int Upgrade { get; set; }
     }
 }

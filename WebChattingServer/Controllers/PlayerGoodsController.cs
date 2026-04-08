@@ -1,35 +1,26 @@
-﻿using BLL.Caching;
 using BLL.DTOs;
-using BLL.Services.Players;
-using Microsoft.AspNetCore.Authorization;
+using BLL.Services.Players.Application;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace WebChattingServer.Controllers
 {
-    [Authorize]
-    [ApiController]
     [Route("player/goods")]
-    public class PlayerGoodsController : ControllerBase
+    public class PlayerGoodsController : PlayerApiControllerBase
     {
-        private readonly IPlayerManager _playerManager;
-        private readonly IPlayerGoodsService _playerGoodsService;
-        public PlayerGoodsController(IPlayerManager manager, IPlayerGoodsService playerGoodsService)
+        private readonly IPlayerApplicationService _playerApplicationService;
+
+        public PlayerGoodsController(IPlayerApplicationService playerApplicationService)
         {
-            _playerManager = manager;
-            _playerGoodsService = playerGoodsService;
+            _playerApplicationService = playerApplicationService;
         }
+
         [HttpPost("changed")]
-        public IActionResult GoodsChanged(GoodsDTO goodsDTO)
+        public async Task<IActionResult> GoodsChanged([FromBody] GoodsDTO goodsDTO)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerGoodsService.GoodsChanged(player, goodsDTO.GoodsType, goodsDTO.Amount);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.ChangeGoodsAsync(playerId, goodsDTO));
         }
     }
 }

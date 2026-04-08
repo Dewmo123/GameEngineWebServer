@@ -1,33 +1,24 @@
-﻿using BLL.DTOs;
-using BLL.UoW;
 using System.Collections.Concurrent;
 
 namespace BLL.Caching
 {
     public class PlayerManager : IPlayerManager
     {
-        private ConcurrentDictionary<int, Player> _players;
-        public PlayerManager()
+        private readonly ConcurrentDictionary<int, Player> _players = new();
+
+        public bool TryGetPlayer(int id, out Player? player)
         {
-            _players = new();
-        }
-        public bool AddPlayer(int id, PlayerDTO playerInfo)
-        {
-            Player player = new(id, playerInfo);
-            Console.WriteLine("add");
-            return _players.TryAdd(id, player);
+            return _players.TryGetValue(id, out player);
         }
 
-        public Player GetPlayer(int id)
+        public Player GetOrAddPlayer(int id, Func<Player> factory)
         {
-            return _players[id];
+            return _players.GetOrAdd(id, _ => factory());
         }
 
-        public bool RemovePlayer(int id,out Player? player)
+        public bool TryRemovePlayer(int id, out Player? player)
         {
-            bool success = _players.TryRemove(id, out var removePlayer);
-            player = removePlayer;
-            return success;
+            return _players.TryRemove(id, out player);
         }
     }
 }

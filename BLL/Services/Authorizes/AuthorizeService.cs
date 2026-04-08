@@ -1,69 +1,66 @@
-using AutoMapper;
+﻿using BLL.Common.Results;
 using BLL.DTOs;
 using BLL.UoW;
-using DAL.Repositories.Authorizes;
 using DAL.VOs;
 
 namespace BLL.Services.Authorizes
 {
     public class AuthorizeService : IAuthorizeService
     {
-        private readonly IMapper _mapper;
+        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
-        public AuthorizeService(IMapper mapper)
+        public AuthorizeService(IUnitOfWorkFactory unitOfWorkFactory)
         {
-            _mapper = mapper;
+            _unitOfWorkFactory = unitOfWorkFactory;
         }
 
-        public async Task<LoginUserDTO?> LogIn(LoginDTO loginDTO)
+        public async Task<Result<LoginUserDTO>> LogIn(LoginDTO loginDTO)
         {
             if (string.IsNullOrWhiteSpace(loginDTO.UserId) || string.IsNullOrWhiteSpace(loginDTO.Password))
-                return null;
+                return Result<LoginUserDTO>.Invalid("UserId and Password are required.");
 
-            await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
+            await using IUnitOfWork unitOfWork = await _unitOfWorkFactory.CreateAsync();
+
+            LoginVO? login = await unitOfWork.Authorize.GetUser(loginDTO.UserId, loginDTO.Password);
+            if (login == null || string.IsNullOrWhiteSpace(login.UserId))
+                return Result<LoginUserDTO>.Unauthorized("Invalid credentials.");
+
+            List<UserRoleVO> roles = await unitOfWork.Role.GetUserRoles(login.Id);
+
+            return Result<LoginUserDTO>.Success(new LoginUserDTO
             {
-                IAuthorizeRepository authorizeRepository = uow.GetRepository<IAuthorizeRepository, AuthorizeRepository>();
-                IRoleRepository roleRepository = uow.GetRepository<IRoleRepository, RoleRepository>();
-
-                LoginVO? login = await authorizeRepository.GetUser(loginDTO.UserId, loginDTO.Password);
-                if (login == null)
-                {
-                    Console.WriteLine("Wrong user");
-                    return null;
-                }
-
-                Console.WriteLine(loginDTO.UserId);
-                LoginUserDTO user = _mapper.Map<LoginVO, LoginUserDTO>(login);
-                List<UserRoleVO> roles = await roleRepository.GetUserRoles(login.Id);
-                user.Roles = roles.Select(item => item.Role).ToList();
-                return user;
-            }
+                Id = login.Id,
+                UserId = login.UserId,
+                Roles = roles.Select(item => item.Role).ToList()
+            });
         }
 
-        public async Task<bool> SignUp(CreateUserDTO createUserDTO)
+        public async Task<Result> SignUp(CreateUserDTO createUserDTO)
         {
             if (string.IsNullOrWhiteSpace(createUserDTO.UserId) || string.IsNullOrWhiteSpace(createUserDTO.Password))
-                return false;
+                return Result.Invalid("UserId and Password are required.");
 
-            await using (IUnitOfWork uow = await UnitOfWork.CreateUoWAsync())
+            await using IUnitOfWork unitOfWork = await _unitOfWorkFactory.CreateAsync();
+
+            LoginVO? existingUser = await unitOfWork.Authorize.GetUserByUserId(createUserDTO.UserId);
+            if (existingUser != null)
+                return Result.Conflict("User already exists.");
+
+            int id = await unitOfWork.Authorize.AddUser(createUserDTO.UserId, createUserDTO.Password);
+            if (id <= 0)
             {
-                IAuthorizeRepository authorizeRepository = uow.GetRepository<IAuthorizeRepository, AuthorizeRepository>();
-                IRoleRepository roleRepository = uow.GetRepository<IRoleRepository, RoleRepository>();
-
-                LoginVO? loginVO = await authorizeRepository.GetUser(createUserDTO.UserId, createUserDTO.Password);
-                if (loginVO != null)
-                    return false;
-
-                int id = await authorizeRepository.AddUser(createUserDTO.UserId, createUserDTO.Password);
-                if (await roleRepository.AddRole(id, Role.User) != 1)
-                {
-                    await uow.RollbackAsync();
-                    return false;
-                }
-
-                await uow.CommitAsync();
-                return true;
+                await unitOfWork.RollbackAsync();
+                return Result.PersistenceFailure("Failed to create user.");
             }
+
+            if (await unitOfWork.Role.AddRole(id, Role.User) != 1)
+            {
+                await unitOfWork.RollbackAsync();
+                return Result.PersistenceFailure("Failed to assign default role.");
+            }
+
+            await unitOfWork.CommitAsync();
+            return Result.Success();
         }
     }
 }

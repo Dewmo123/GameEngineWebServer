@@ -1,35 +1,26 @@
-﻿using BLL.Caching;
 using BLL.DTOs;
-using BLL.Services.Players;
-using Microsoft.AspNetCore.Authorization;
+using BLL.Services.Players.Application;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace WebChattingServer.Controllers
 {
-    [Authorize]
-    [ApiController]
     [Route("player/stat")]
-    public class PlayerStatController : ControllerBase
+    public class PlayerStatController : PlayerApiControllerBase
     {
-        private readonly IPlayerManager _playerManager;
-        private readonly IPlayerStatService _playerStatService;
-        public PlayerStatController(IPlayerManager playerManager, IPlayerStatService playerStatService)
+        private readonly IPlayerApplicationService _playerApplicationService;
+
+        public PlayerStatController(IPlayerApplicationService playerApplicationService)
         {
-            _playerManager = playerManager;
-            _playerStatService = playerStatService;
+            _playerApplicationService = playerApplicationService;
         }
+
         [HttpPost("level-up")]
-        public IActionResult StatLevelUp(StatDTO statDTO)
+        public async Task<IActionResult> StatLevelUp([FromBody] StatDTO statDTO)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerStatService.LevelUpStat(player, statDTO.StatType, statDTO.Level);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.LevelUpStatAsync(playerId, statDTO));
         }
     }
 }

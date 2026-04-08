@@ -1,5 +1,6 @@
-﻿using BLL.Caching;
-using BLL.DTOs;
+using BLL.Caching;
+using BLL.Common.Results;
+using BLL.Domain.Players;
 using BLL.Services.Players.Persistence;
 
 namespace BLL.Services.Players.Session
@@ -15,20 +16,26 @@ namespace BLL.Services.Players.Session
             _playerPersistenceService = playerPersistenceService;
         }
 
-        public async Task<PlayerDTO> LoadPlayerAsync(int id)
+        public async Task<Player> GetOrLoadPlayerAsync(int id)
         {
-            PlayerDTO player = await _playerPersistenceService.LoadAsync(id);
-            player.Id = id.ToString();
-            _playerManager.AddPlayer(id, player);
-            return player;
+            if (_playerManager.TryGetPlayer(id, out Player? existingPlayer) && existingPlayer != null)
+                return existingPlayer;
+
+            PlayerState state = await _playerPersistenceService.LoadAsync(id);
+            return _playerManager.GetOrAddPlayer(id, () => new Player(state));
         }
 
-        public async Task<bool> UnloadPlayerAsync(int id)
+        public async Task<Result> UnloadPlayerAsync(int id)
         {
-            if (!_playerManager.RemovePlayer(id, out Player? player) || player == null)
-                return false;
+            if (!_playerManager.TryGetPlayer(id, out Player? player) || player == null)
+                return Result.Success();
 
-            return await _playerPersistenceService.SaveAsync(id, player.GetCopyDTO());
+            Result saveResult = await _playerPersistenceService.SaveAsync(player.GetSnapshot());
+            if (!saveResult.Succeeded)
+                return saveResult;
+
+            _playerManager.TryRemovePlayer(id, out _);
+            return Result.Success();
         }
     }
 }

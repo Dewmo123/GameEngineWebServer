@@ -1,8 +1,6 @@
 ﻿using DAL.VOs;
 using Dapper;
 using MySql.Data.MySqlClient;
-using System.Data.Common;
-
 namespace DAL.Repositories.Authorizes
 {
     public class RoleRepository : Repository, IRoleRepository
@@ -14,7 +12,7 @@ namespace DAL.Repositories.Authorizes
         public async Task<int> AddRole(int id, Role role)
         {
             string query = "INSERT INTO RoleData (Id, Role) VALUES (@id, @role)";
-            return await _connection.ExecuteAsync(query, new { id, role });
+            return await _connection.ExecuteAsync(query, new { id, role }, _transaction);
         }
 
         public async Task<List<UserRoleVO>> GetUserRoles(int id)

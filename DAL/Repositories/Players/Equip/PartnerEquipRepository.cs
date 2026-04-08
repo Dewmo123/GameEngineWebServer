@@ -13,20 +13,20 @@ namespace DAL.Repositories.Players.Equip
         public async Task<int> AddPartnerEquip(int id, int idx, string partnerName)
         {
             string query = "INSERT INTO PlayerPartnerEquip (Id,Idx,PartnerName) VALUES (@id,@idx,@partnerName)";
-            return await _connection.ExecuteAsync(sql: query, new { id, idx, partnerName });
+            return await _connection.ExecuteAsync(sql: query, new { id, idx, partnerName }, _transaction);
         }
 
         public async Task<List<PartnerEquipVO>> GetPartnerEquips(int id)
         {
             string query = "SELECT * FROM PlayerPartnerEquip WHERE Id = @id";
-            var vos = await _connection.QueryAsync<PartnerEquipVO>(sql: query, new { id });
+            var vos = await _connection.QueryAsync<PartnerEquipVO>(sql: query, new { id }, _transaction);
             return vos.ToList();
         }
 
         public async Task<int> UpdatePartnerEquip(int id, int idx, string partnerName)
         {
             string query = "UPDATE PlayerPartnerEquip SET PartnerName = @partnerName WHERE Id = @id AND Idx = @idx";
-            return await _connection.ExecuteAsync(sql: query, new { partnerName, id, idx });
+            return await _connection.ExecuteAsync(sql: query, new { partnerName, id, idx }, _transaction);
         }
     }
 }

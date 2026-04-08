@@ -1,74 +1,53 @@
-﻿using BLL.Caching;
 using BLL.DTOs;
-using BLL.Services.Players;
-using DAL.VOs;
-using Microsoft.AspNetCore.Authorization;
+using BLL.Services.Players.Application;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace WebChattingServer.Controllers
 {
-    [Authorize]
-    [ApiController]
     [Route("player/partner")]
-    public class PlayerPartnerController : ControllerBase
+    public class PlayerPartnerController : PlayerApiControllerBase
     {
-        private readonly IPlayerManager _playerManager;
-        private readonly IPlayerPartnerService _playerPartnerService;
+        private readonly IPlayerApplicationService _playerApplicationService;
 
-        public PlayerPartnerController(IPlayerManager playerManager, IPlayerPartnerService playerPartnerService)
+        public PlayerPartnerController(IPlayerApplicationService playerApplicationService)
         {
-            _playerManager = playerManager;
-            _playerPartnerService = playerPartnerService;
+            _playerApplicationService = playerApplicationService;
         }
+
         [HttpPost("level-up")]
-        public IActionResult LevelUpPartner(LevelUpPartnerDTO partnerDTO)
+        public async Task<IActionResult> LevelUpPartner([FromBody] LevelUpPartnerDTO partnerDTO)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerPartnerService.LevelUpPartner(player, partnerDTO.PartnerName, partnerDTO.Level);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.LevelUpPartnerAsync(playerId, partnerDTO));
         }
+
         [HttpPost("add-amount")]
-        public IActionResult AddPartnerAmount(PartnerAmountDTO partnerDTO)
+        public async Task<IActionResult> AddPartnerAmount([FromBody] PartnerAmountDTO partnerDTO)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerPartnerService.AddPartnerAmount(player, partnerDTO.PartnerName, partnerDTO.Amount);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.AddPartnerAmountAsync(playerId, partnerDTO));
         }
 
         [HttpPost("equip")]
-        public IActionResult EquipPartner(PartnerEquipDTO partnerDTO)
+        public async Task<IActionResult> EquipPartner([FromBody] PartnerEquipDTO partnerDTO)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerPartnerService.EquipPartner(player, partnerDTO.Idx, partnerDTO.PartnerName);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.EquipPartnerAsync(playerId, partnerDTO));
         }
+
         [HttpPost("set-upgrade-and-amount")]
-        public IActionResult SetUpgradeAndAmount(SetAmountAndUpgradeDTO dto)
+        public async Task<IActionResult> SetUpgradeAndAmount([FromBody] SetPartnerAmountAndUpgradeDTO dto)
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-            {
-                Player player = _playerManager.GetPlayer(val);
-                bool success = _playerPartnerService.SetUpgradeAndAmount(player,dto.PartnerName, dto.Amount, dto.Upgrade);
-                return success ? Ok() : BadRequest();
-            }
-            return Unauthorized();
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            return ToActionResult(await _playerApplicationService.SetPartnerProgressAsync(playerId, dto));
         }
     }
 }

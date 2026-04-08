@@ -1,10 +1,11 @@
-﻿using BLL.DTOs;
+using BLL.Common.Results;
+using BLL.Domain.Players;
 
 namespace BLL.Services.Players.Persistence
 {
     public interface IPlayerPersistenceService
     {
-        Task<PlayerDTO> LoadAsync(int playerId);
-        Task<bool> SaveAsync(int playerId, PlayerDTO player);
+        Task<PlayerState> LoadAsync(int playerId);
+        Task<Result> SaveAsync(PlayerState player);
     }
 }

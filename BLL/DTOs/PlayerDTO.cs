@@ -11,7 +11,7 @@ namespace BLL.DTOs
         public Dictionary<GoodsType, int> Goods { get; set; } = new();
         public Dictionary<string,SkillDTO> Skills { get; set; } = new();
         public Dictionary<string, PartnerDTO> Partners { get; set; } = new();
-        public string?[] SkillEquips { get; set; } = new string?[DefaultSetting.skillEquipLength];
-        public string?[] PartnerEquips { get; set; } = new string?[DefaultSetting.partnerEquipLength];
+        public string?[] SkillEquips { get; set; } = new string?[DefaultSetting.SkillEquipLength];
+        public string?[] PartnerEquips { get; set; } = new string?[DefaultSetting.PartnerEquipLength];
     }
 }

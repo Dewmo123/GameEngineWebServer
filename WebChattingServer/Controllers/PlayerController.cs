@@ -1,39 +1,41 @@
-﻿using BLL.DTOs;
-using BLL.Services.Players.Session;
-using Microsoft.AspNetCore.Authorization;
+using BLL.DTOs;
+using BLL.Services.Players.Application;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace WebChattingServer.Controllers
 {
-    [Authorize]
-    [ApiController]
     [Route("player")]
-    public class PlayerController : ControllerBase
+    public class PlayerController : PlayerApiControllerBase
     {
-        private readonly IPlayerSessionService _playerSessionService;
+        private readonly IPlayerApplicationService _playerApplicationService;
 
-        public PlayerController(IPlayerSessionService playerSessionService)
+        public PlayerController(IPlayerApplicationService playerApplicationService)
         {
-            _playerSessionService = playerSessionService;
+            _playerApplicationService = playerApplicationService;
         }
 
         [HttpGet("get-player-infos")]
-        public async Task<ActionResult<PlayerDTO>> GetPlayerInfos()
+        public async Task<IActionResult> GetPlayerInfos()
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-                return await _playerSessionService.LoadPlayerAsync(val);
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
 
-            return NoContent();
+            return ToActionResult(await _playerApplicationService.GetPlayerAsync(playerId));
         }
 
         [HttpDelete("log-out")]
-        public async Task LogOut()
+        public async Task<IActionResult> LogOut()
         {
-            string? id = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(id) && int.TryParse(id, out int val))
-                await _playerSessionService.UnloadPlayerAsync(val);
+            if (!TryGetCurrentPlayerId(out int playerId, out IActionResult? error))
+                return error!;
+
+            var result = await _playerApplicationService.LogOutAsync(playerId);
+            if (!result.Succeeded)
+                return ToActionResult(result);
+
+            await HttpContext.SignOutAsync("UserKey");
+            return Ok();
         }
     }
 }

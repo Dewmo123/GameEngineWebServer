@@ -1,40 +1,32 @@
-﻿using BLL.Caching;
-using BLL.DTOs;
+﻿using BLL.Common.Results;
+using BLL.Domain.Players;
 using BLL.Services.Players.Persistence;
 using BLL.UoW;
-using DAL.Repositories.Players.Goods;
 using DAL.VOs;
 
 namespace BLL.Services.Players.Persistence.Sections
 {
     public class PlayerGoodsPersistenceSection : IPlayerPersistenceSection
     {
-        public async Task LoadAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork)
+        public async Task LoadAsync(int playerId, PlayerState player, IUnitOfWork unitOfWork)
         {
-            IGoodsRepository goodsRepository = unitOfWork.GetRepository<IGoodsRepository, GoodsRepository>();
-            List<GoodsVO> goods = await goodsRepository.GetAllGoods(playerId);
-
+            List<GoodsVO> goods = await unitOfWork.Goods.GetAllGoods(playerId);
             player.Goods = goods.ToDictionary(item => item.GoodsType, item => item.Amount);
-            foreach ((GoodsType goodsType, int amount) in DefaultSetting.defaultGoods)
-            {
-                if (player.Goods.ContainsKey(goodsType))
-                    continue;
-
-                player.Goods.Add(goodsType, amount);
-                await goodsRepository.AddGoodsAsync(playerId, goodsType, amount);
-            }
         }
 
-        public async Task<bool> SaveAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork)
+        public async Task<Result> SaveAsync(PlayerState player, IUnitOfWork unitOfWork)
         {
-            IGoodsRepository goodsRepository = unitOfWork.GetRepository<IGoodsRepository, GoodsRepository>();
             foreach ((GoodsType goodsType, int amount) in player.Goods)
             {
-                if (await goodsRepository.UpdateGoods(playerId, goodsType, amount) != 1)
-                    return false;
+                int affected = await unitOfWork.Goods.UpdateGoods(player.Id, goodsType, amount);
+                if (affected == 0)
+                    affected = await unitOfWork.Goods.AddGoodsAsync(player.Id, goodsType, amount);
+
+                if (affected != 1)
+                    return Result.PersistenceFailure($"Failed to persist goods '{goodsType}'.");
             }
 
-            return true;
+            return Result.Success();
         }
     }
 }

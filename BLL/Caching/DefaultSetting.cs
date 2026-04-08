@@ -1,26 +1,29 @@
-﻿using DAL.VOs;
+using System.Collections.ObjectModel;
+using DAL.VOs;
 
 namespace BLL.Caching
 {
-    public class DefaultSetting
+    public static class DefaultSetting
     {
-        public static readonly Dictionary<StatType, int> defaultStat = new()
+        public static IReadOnlyDictionary<StatType, int> DefaultStats { get; } = new ReadOnlyDictionary<StatType, int>(new Dictionary<StatType, int>
         {
-            {StatType.AttackPower,1 },
-            {StatType.AttackSpeed,1 },
-            {StatType.Health,1 },
-            {StatType.CriticalChance,1 },
-            {StatType.CriticalDamage,1 },
-            {StatType.Hps,1 },
-        };
-        public static readonly Dictionary<GoodsType, int> defaultGoods = new()
+            { StatType.AttackPower, 1 },
+            { StatType.AttackSpeed, 1 },
+            { StatType.Health, 1 },
+            { StatType.CriticalChance, 1 },
+            { StatType.CriticalDamage, 1 },
+            { StatType.Hps, 1 },
+        });
+
+        public static IReadOnlyDictionary<GoodsType, int> DefaultGoods { get; } = new ReadOnlyDictionary<GoodsType, int>(new Dictionary<GoodsType, int>
         {
-            {GoodsType.Gold, 0 },
-            {GoodsType.Crystal, 0 },
-            {GoodsType.ReinforceStone, 0 },
-            {GoodsType.DungeonKey, 0 },
-        };
-        public static readonly HashSet<string> skills = new()
+            { GoodsType.Gold, 0 },
+            { GoodsType.Crystal, 0 },
+            { GoodsType.ReinforceStone, 0 },
+            { GoodsType.DungeonKey, 0 },
+        });
+
+        public static IReadOnlySet<string> SkillNames { get; } = new HashSet<string>(StringComparer.Ordinal)
         {
             "ReaperSkill",
             "BombSkill",
@@ -28,29 +31,21 @@ namespace BLL.Caching
             "ShunraiSkill",
             "ReaperSmashSkill",
             "HammerSkill",
-            "FireballSkill",
             "LavaGolemSkill"
         };
-        public static readonly HashSet<string> partners = new()
+
+        public static IReadOnlySet<string> PartnerNames { get; } = new HashSet<string>(StringComparer.Ordinal)
         {
             "Axer",
             "Riven",
             "Mooni",
             "BigAxer",
-            "Riven",
             "BigMooni",
             "Reaper",
             "BigReaper"
         };
-        public static readonly int skillEquipLength = 6;
-        public static readonly int partnerEquipLength = 6;
-        public static readonly HashSet<int> defaultSkillEquip = new() 
-        {
-            0,1,2,3,4,5
-        };
-        public static readonly HashSet<int> defaultPartnerEquip = new()
-        {
-            0,1,2,3,4,5
-        };
+
+        public const int SkillEquipLength = 6;
+        public const int PartnerEquipLength = 6;
     }
 }

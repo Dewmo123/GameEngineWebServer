@@ -1,12 +1,10 @@
 ﻿using BLL.Caching;
-using BLL.DTOs;
 using BLL.Services.Authorizes;
-using BLL.Services.Players;
+using BLL.Services.Players.Application;
 using BLL.Services.Players.Persistence;
 using BLL.Services.Players.Persistence.Sections;
 using BLL.Services.Players.Session;
 using BLL.UoW;
-using DAL.VOs;
 
 namespace WebChattingServer
 {
@@ -17,22 +15,7 @@ namespace WebChattingServer
             var builder = WebApplication.CreateBuilder(args);
             builder.Services.AddSignalR();
             SetAuthorizeAndAuthentification(builder);
-            builder.Services.AddAutoMapper(config =>
-            {
-                config.LicenseKey = "eyJhbGciOiJSUzI1NiIsImtpZCI6Ikx1Y2t5UGVubnlTb2Z0d2FyZUxpY2Vuc2VLZXkvYmJiMTNhY2I1OTkwNGQ4OWI0Y2IxYzg1ZjA4OGNjZjkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2x1Y2t5cGVubnlzb2Z0d2FyZS5jb20iLCJhdWQiOiJMdWNreVBlbm55U29mdHdhcmUiLCJleHAiOiIxNzg1MjgzMjAwIiwiaWF0IjoiMTc1Mzc4NDM2NSIsImFjY291bnRfaWQiOiIwMTk4NTViMGZiZjg3YTY4YWQwMDQ2YTZjY2ZlYTdhZCIsImN1c3RvbWVyX2lkIjoiY3RtXzAxazFhdjNjOXo2MzZtanNjcHFkMHA3NDFiIiwic3ViX2lkIjoiLSIsImVkaXRpb24iOiIwIiwidHlwZSI6IjIifQ.OHCOAU0UzHNQ2E-_8VDmqujSwP-cRGthlX4jpIe83jZn4UxWykkz0rEub9tL6WhORYuPICOcAatGNZN7BV5EKNndhUsw2BcaeIvNsjmG7HUnjJTFdUjvq-_RubyMw1xVVvaAGwXwaUGSAzOtoSGm2co-2-ApKBfeVVUNVxTdPMzpf4is8SyCmZltoEFWuIGV5V8UpfxqOvkt5qWb4clMXtieIbyAMFpoeaM5wqmMHT1wJEw3v36y34ptEUWTorYt6KKawngXf7B6Z9NzNYpxI3WXYpqE976TAhjeaxUHP8DCV4daHTzjmUcqXq7Gq6i8Wis6V9uN5Vthq0Pe2Lp3mg";
-                config.CreateMap<LoginVO, LoginUserDTO>();
-                config.CreateMap<LoginUserDTO, LoginVO>();
-                config.CreateMap<StatDTO, StatVO>();
-                config.CreateMap<StatVO, StatDTO>();
-                config.CreateMap<SkillVO, SkillDTO>();
-                config.CreateMap<SkillDTO, SkillVO>();
-                config.CreateMap<ChapterDTO, ChapterVO>();
-                config.CreateMap<ChapterVO, ChapterDTO>();
-                config.CreateMap<PartnerVO, PartnerDTO>();
-                config.CreateMap<PartnerDTO, PartnerVO>();
-                config.CreateMap<SkillEquipVO, SkillEquipDTO>();
-                config.CreateMap<SkillEquipDTO, SkillEquipVO>();
-            });
+
             builder.Services.AddCors(options =>
             {
                 options.AddDefaultPolicy(policy =>
@@ -43,12 +26,7 @@ namespace WebChattingServer
                 });
             });
 
-            string? connection = builder.Configuration.GetConnectionString("MySql");
-            if (string.IsNullOrEmpty(connection))
-                throw new NullReferenceException();
-
-            UnitOfWork.connectionString = connection;
-            AdClasses(builder);
+            AddServices(builder);
             builder.Services.AddControllers();
             builder.WebHost.ConfigureKestrel(options =>
             {
@@ -72,12 +50,19 @@ namespace WebChattingServer
             app.Run();
         }
 
-        private static void AdClasses(WebApplicationBuilder builder)
+        private static void AddServices(WebApplicationBuilder builder)
         {
-            builder.Services.AddTransient<IAuthorizeService, AuthorizeService>();
             builder.Services.AddSingleton<IPlayerManager, PlayerManager>();
+
+            string connection = builder.Configuration.GetConnectionString("MySql")
+                ?? throw new InvalidOperationException("MySql connection string is missing.");
+
+            builder.Services.AddTransient<IUnitOfWorkFactory>(_ => new UnitOfWorkFactory(connection));
+            builder.Services.AddTransient<IAuthorizeService, AuthorizeService>();
             builder.Services.AddTransient<IPlayerSessionService, PlayerSessionService>();
             builder.Services.AddTransient<IPlayerPersistenceService, PlayerPersistenceService>();
+            builder.Services.AddTransient<IPlayerApplicationService, PlayerApplicationService>();
+
             builder.Services.AddTransient<IPlayerPersistenceSection, PlayerStatPersistenceSection>();
             builder.Services.AddTransient<IPlayerPersistenceSection, PlayerGoodsPersistenceSection>();
             builder.Services.AddTransient<IPlayerPersistenceSection, PlayerSkillPersistenceSection>();
@@ -85,11 +70,6 @@ namespace WebChattingServer
             builder.Services.AddTransient<IPlayerPersistenceSection, PlayerPartnerPersistenceSection>();
             builder.Services.AddTransient<IPlayerPersistenceSection, PlayerSkillEquipPersistenceSection>();
             builder.Services.AddTransient<IPlayerPersistenceSection, PlayerPartnerEquipPersistenceSection>();
-            builder.Services.AddTransient<IPlayerChapterService, PlayerChapterService>();
-            builder.Services.AddTransient<IPlayerGoodsService, PlayerGoodsService>();
-            builder.Services.AddTransient<IPlayerStatService, PlayerStatService>();
-            builder.Services.AddTransient<IPlayerSkillService, PlayerSkillService>();
-            builder.Services.AddTransient<IPlayerPartnerService, PlayerPartnerService>();
         }
 
         private static void SetAuthorizeAndAuthentification(WebApplicationBuilder builder)
@@ -101,17 +81,17 @@ namespace WebChattingServer
                     options.LoginPath = "/authorize/log-in";
                     options.Cookie.SameSite = SameSiteMode.Strict;
                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                    options.ExpireTimeSpan = TimeSpan.FromSeconds(3600 * 24 * 7);
+                    options.ExpireTimeSpan = TimeSpan.FromDays(7);
                 });
 
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("IsAdmin",
                     policy => policy.RequireAssertion(context =>
-                    context.User.IsInRole("Admin")));
+                        context.User.IsInRole("Admin")));
                 options.AddPolicy("User",
                     policy => policy.RequireAssertion(context =>
-                    context.User.IsInRole("User")));
+                        context.User.IsInRole("User")));
             });
         }
     }

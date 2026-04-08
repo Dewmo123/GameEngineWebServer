@@ -13,20 +13,20 @@ namespace DAL.Repositories.Players.Unit
         public async Task<int> AddSkill(int id, string skillName, int level, int upgrade, int amount)
         {
             string query = "INSERT INTO PlayerSkill (Id, SkillName, Level, Upgrade, Amount) VALUES (@id, @skillName, @level, @upgrade, @amount)";
-            return await _connection.ExecuteAsync(sql: query, new { id, skillName, level, upgrade, amount });
+            return await _connection.ExecuteAsync(sql: query, new { id, skillName, level, upgrade, amount }, _transaction);
         }
 
         public async Task<List<SkillVO>> GetAllSkills(int id)
         {
             string query = "SELECT * FROM PlayerSkill WHERE Id = @id";
-            var vos = await _connection.QueryAsync<SkillVO>(sql: query, new { id });
+            var vos = await _connection.QueryAsync<SkillVO>(sql: query, new { id }, _transaction);
             return vos.ToList();
         }
 
         public async Task<int> UpdateSkill(int id, string skillName, int level, int upgrade, int amount)
         {
             string query = "UPDATE PlayerSkill SET Level = @level, Upgrade = @upgrade, Amount = @amount WHERE Id = @id AND SkillName = @skillName";
-            return await _connection.ExecuteAsync(sql: query, new { level, upgrade, amount, id, skillName });
+            return await _connection.ExecuteAsync(sql: query, new { level, upgrade, amount, id, skillName }, _transaction);
         }
     }
 }

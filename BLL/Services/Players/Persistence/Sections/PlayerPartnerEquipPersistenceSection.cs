@@ -1,48 +1,38 @@
-﻿using BLL.Caching;
-using BLL.DTOs;
+﻿using BLL.Common.Results;
+using BLL.Domain.Players;
 using BLL.Services.Players.Persistence;
 using BLL.UoW;
-using DAL.Repositories.Players.Equip;
 using DAL.VOs;
 
 namespace BLL.Services.Players.Persistence.Sections
 {
     public class PlayerPartnerEquipPersistenceSection : IPlayerPersistenceSection
     {
-        public async Task LoadAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork)
+        public async Task LoadAsync(int playerId, PlayerState player, IUnitOfWork unitOfWork)
         {
-            IPartnerEquipRepository partnerEquipRepository = unitOfWork.GetRepository<IPartnerEquipRepository, PartnerEquipRepository>();
-            List<PartnerEquipVO> partnerEquips = await partnerEquipRepository.GetPartnerEquips(playerId);
-
-            player.PartnerEquips = new string?[DefaultSetting.partnerEquipLength];
+            List<PartnerEquipVO> partnerEquips = await unitOfWork.PartnerEquip.GetPartnerEquips(playerId);
             foreach (PartnerEquipVO partnerEquip in partnerEquips)
             {
                 if (partnerEquip.Idx < 0 || partnerEquip.Idx >= player.PartnerEquips.Length)
                     continue;
 
-                player.PartnerEquips[partnerEquip.Idx] = partnerEquip.PartnerName;
-            }
-
-            if (partnerEquips.Count == 0)
-            {
-                foreach (int idx in DefaultSetting.defaultPartnerEquip)
-                    await partnerEquipRepository.AddPartnerEquip(playerId, idx, string.Empty);
+                player.PartnerEquips[partnerEquip.Idx] = string.IsNullOrWhiteSpace(partnerEquip.PartnerName) ? null : partnerEquip.PartnerName;
             }
         }
 
-        public async Task<bool> SaveAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork)
+        public async Task<Result> SaveAsync(PlayerState player, IUnitOfWork unitOfWork)
         {
-            if (player.PartnerEquips.Length != DefaultSetting.partnerEquipLength)
-                return false;
-
-            IPartnerEquipRepository partnerEquipRepository = unitOfWork.GetRepository<IPartnerEquipRepository, PartnerEquipRepository>();
             for (int i = 0; i < player.PartnerEquips.Length; i++)
             {
-                if (await partnerEquipRepository.UpdatePartnerEquip(playerId, i, player.PartnerEquips[i] ?? string.Empty) != 1)
-                    return false;
+                int affected = await unitOfWork.PartnerEquip.UpdatePartnerEquip(player.Id, i, player.PartnerEquips[i] ?? string.Empty);
+                if (affected == 0)
+                    affected = await unitOfWork.PartnerEquip.AddPartnerEquip(player.Id, i, player.PartnerEquips[i] ?? string.Empty);
+
+                if (affected != 1)
+                    return Result.PersistenceFailure($"Failed to persist partner equip slot '{i}'.");
             }
 
-            return true;
+            return Result.Success();
         }
     }
 }

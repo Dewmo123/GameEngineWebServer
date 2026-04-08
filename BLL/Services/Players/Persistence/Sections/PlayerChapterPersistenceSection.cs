@@ -1,45 +1,36 @@
-﻿using AutoMapper;
-using BLL.DTOs;
+﻿using BLL.Common.Results;
+using BLL.Domain.Players;
 using BLL.Services.Players.Persistence;
 using BLL.UoW;
-using DAL.Repositories.Players.Chapter;
 using DAL.VOs;
 
 namespace BLL.Services.Players.Persistence.Sections
 {
     public class PlayerChapterPersistenceSection : IPlayerPersistenceSection
     {
-        private readonly IMapper _mapper;
-
-        public PlayerChapterPersistenceSection(IMapper mapper)
+        public async Task LoadAsync(int playerId, PlayerState player, IUnitOfWork unitOfWork)
         {
-            _mapper = mapper;
-        }
-
-        public async Task LoadAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork)
-        {
-            IChapterRepository chapterRepository = unitOfWork.GetRepository<IChapterRepository, ChapterRepository>();
-            ChapterVO? chapter = await chapterRepository.GetChapter(playerId);
-
+            ChapterVO? chapter = await unitOfWork.Chapter.GetChapter(playerId);
             if (chapter == null)
+                return;
+
+            player.Chapter = new PlayerChapterState
             {
-                chapter = new ChapterVO
-                {
-                    Chapter = 1,
-                    Stage = 1,
-                    EnemyCount = 0
-                };
-
-                await chapterRepository.AddChapter(playerId, chapter.Chapter, chapter.Stage, chapter.EnemyCount);
-            }
-
-            player.Chapter = _mapper.Map<ChapterVO, ChapterDTO>(chapter);
+                Chapter = chapter.Chapter,
+                Stage = chapter.Stage,
+                EnemyCount = chapter.EnemyCount
+            };
         }
 
-        public async Task<bool> SaveAsync(int playerId, PlayerDTO player, IUnitOfWork unitOfWork)
+        public async Task<Result> SaveAsync(PlayerState player, IUnitOfWork unitOfWork)
         {
-            IChapterRepository chapterRepository = unitOfWork.GetRepository<IChapterRepository, ChapterRepository>();
-            return await chapterRepository.UpdateChapter(playerId, player.Chapter.Chapter, player.Chapter.Stage, player.Chapter.EnemyCount) == 1;
+            int affected = await unitOfWork.Chapter.UpdateChapter(player.Id, player.Chapter.Chapter, player.Chapter.Stage, player.Chapter.EnemyCount);
+            if (affected == 0)
+                affected = await unitOfWork.Chapter.AddChapter(player.Id, player.Chapter.Chapter, player.Chapter.Stage, player.Chapter.EnemyCount);
+
+            return affected == 1
+                ? Result.Success()
+                : Result.PersistenceFailure("Failed to persist chapter.");
         }
     }
 }

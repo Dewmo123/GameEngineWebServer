@@ -1,10 +1,11 @@
-﻿using BLL.DTOs;
+using BLL.Caching;
+using BLL.Common.Results;
 
 namespace BLL.Services.Players.Session
 {
     public interface IPlayerSessionService
     {
-        Task<PlayerDTO> LoadPlayerAsync(int id);
-        Task<bool> UnloadPlayerAsync(int id);
+        Task<Player> GetOrLoadPlayerAsync(int id);
+        Task<Result> UnloadPlayerAsync(int id);
     }
 }

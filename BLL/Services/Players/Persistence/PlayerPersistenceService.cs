@@ -1,4 +1,5 @@
-﻿using BLL.DTOs;
+using BLL.Common.Results;
+using BLL.Domain.Players;
 using BLL.UoW;
 
 namespace BLL.Services.Players.Persistence
@@ -6,39 +7,46 @@ namespace BLL.Services.Players.Persistence
     public class PlayerPersistenceService : IPlayerPersistenceService
     {
         private readonly IReadOnlyList<IPlayerPersistenceSection> _sections;
+        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
 
-        public PlayerPersistenceService(IEnumerable<IPlayerPersistenceSection> sections)
+        public PlayerPersistenceService(IEnumerable<IPlayerPersistenceSection> sections, IUnitOfWorkFactory unitOfWorkFactory)
         {
             _sections = sections.ToArray();
+            _unitOfWorkFactory = unitOfWorkFactory;
         }
 
-        public async Task<PlayerDTO> LoadAsync(int playerId)
+        public async Task<PlayerState> LoadAsync(int playerId)
         {
-            await using IUnitOfWork unitOfWork = await UnitOfWork.CreateUoWAsync();
+            await using IUnitOfWork unitOfWork = await _unitOfWorkFactory.CreateAsync();
 
-            PlayerDTO player = new();
+            PlayerState player = new() { Id = playerId };
             foreach (IPlayerPersistenceSection section in _sections)
                 await section.LoadAsync(playerId, player, unitOfWork);
 
+            player.ApplyDefaults();
             await unitOfWork.CommitAsync();
             return player;
         }
 
-        public async Task<bool> SaveAsync(int playerId, PlayerDTO player)
+        public async Task<Result> SaveAsync(PlayerState player)
         {
-            await using IUnitOfWork unitOfWork = await UnitOfWork.CreateUoWAsync();
+            await using IUnitOfWork unitOfWork = await _unitOfWorkFactory.CreateAsync();
+
+            PlayerState normalized = player.Clone();
+            normalized.ApplyDefaults();
 
             foreach (IPlayerPersistenceSection section in _sections)
             {
-                if (!await section.SaveAsync(playerId, player, unitOfWork))
+                Result saveResult = await section.SaveAsync(normalized, unitOfWork);
+                if (!saveResult.Succeeded)
                 {
                     await unitOfWork.RollbackAsync();
-                    return false;
+                    return saveResult;
                 }
             }
 
             await unitOfWork.CommitAsync();
-            return true;
+            return Result.Success();
         }
     }
 }
