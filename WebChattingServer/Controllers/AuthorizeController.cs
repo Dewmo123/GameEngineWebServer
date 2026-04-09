@@ -62,10 +62,7 @@ namespace WebChattingServer.Controllers
         [HttpPost("sign-up")]
         public async Task<IActionResult> SignUp([FromBody] CreateUserDTO createUser)
         {
-            Result result = await _authorizeService.SignUp(createUser);
-            return result.Succeeded
-                ? Created(string.Empty, new { Message = "Sign up success" })
-                : ToActionResult(result);
+            return ToActionResult(await _authorizeService.SignUp(createUser));
         }
     }
 }

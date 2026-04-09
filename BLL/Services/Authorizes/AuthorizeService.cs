@@ -60,7 +60,7 @@ namespace BLL.Services.Authorizes
             }
 
             await unitOfWork.CommitAsync();
-            return Result.Success();
+            return Result.Created("Sign up success");
         }
     }
 }

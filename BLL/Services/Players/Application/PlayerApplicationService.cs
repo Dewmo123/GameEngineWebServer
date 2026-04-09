@@ -91,7 +91,7 @@ namespace BLL.Services.Players.Application
             Result<BLL.Domain.Players.PlayerChapterState> result = player.ChangeChapter(chapter.Chapter);
             return result.Succeeded
                 ? Result<ChapterDTO>.Success(result.Value!.ToDto())
-                : Result<ChapterDTO>.Failure(result.Error!.Code, result.Error.Message);
+                : Result<ChapterDTO>.Failure(result.Status, result.Message ?? "Chapter change failed.");
         }
 
         public async Task<Result<ChapterDTO>> ChangeStageAsync(int playerId, ChangeStageDTO stage)
@@ -100,7 +100,7 @@ namespace BLL.Services.Players.Application
             Result<BLL.Domain.Players.PlayerChapterState> result = player.ChangeStage(stage.Stage);
             return result.Succeeded
                 ? Result<ChapterDTO>.Success(result.Value!.ToDto())
-                : Result<ChapterDTO>.Failure(result.Error!.Code, result.Error.Message);
+                : Result<ChapterDTO>.Failure(result.Status, result.Message ?? "Stage change failed.");
         }
 
         public async Task<Result> EnemyDeadAsync(int playerId, EnemyDeadDTO enemyDead)

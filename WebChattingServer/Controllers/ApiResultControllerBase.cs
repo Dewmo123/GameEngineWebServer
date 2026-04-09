@@ -1,4 +1,4 @@
-using BLL.Common.Results;
+﻿using BLL.Common.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WebChattingServer.Controllers
@@ -8,34 +8,30 @@ namespace WebChattingServer.Controllers
     {
         protected IActionResult ToActionResult(Result result)
         {
-            if (result.Succeeded)
-                return Ok();
-
-            return result.Error!.Code switch
+            return result.Status switch
             {
-                ErrorCode.Unauthorized => Unauthorized(new { Message = result.Error.Message }),
-                ErrorCode.NotFound => NotFound(new { Message = result.Error.Message }),
-                ErrorCode.Conflict => Conflict(new { Message = result.Error.Message }),
-                ErrorCode.PersistenceFailure => StatusCode(StatusCodes.Status500InternalServerError, new { Message = result.Error.Message }),
-                _ => BadRequest(new { Message = result.Error.Message })
+                ResultStatus.Success => Ok(result.Message),
+                ResultStatus.Created => StatusCode(StatusCodes.Status201Created, result.Message),
+                ResultStatus.Unauthorized => Unauthorized(new { Message = result.Message }),
+                ResultStatus.NotFound => NotFound(new { Message = result.Message }),
+                ResultStatus.Conflict => Conflict(new { Message = result.Message }),
+                ResultStatus.PersistenceFailure => StatusCode(StatusCodes.Status500InternalServerError, new { Message = result.Message }),
+                _ => BadRequest(new { Message = result.Message })
             };
         }
 
         protected IActionResult ToActionResult<T>(Result<T> result)
         {
-            if (result.Succeeded)
-                return Ok(result.Value);
-
-            IActionResult failure = result.Error!.Code switch
+            return result.Status switch
             {
-                ErrorCode.Unauthorized => Unauthorized(new { Message = result.Error.Message }),
-                ErrorCode.NotFound => NotFound(new { Message = result.Error.Message }),
-                ErrorCode.Conflict => Conflict(new { Message = result.Error.Message }),
-                ErrorCode.PersistenceFailure => StatusCode(StatusCodes.Status500InternalServerError, new { Message = result.Error.Message }),
-                _ => BadRequest(new { Message = result.Error.Message })
+                ResultStatus.Success => Ok(result.Value),
+                ResultStatus.Created => StatusCode(StatusCodes.Status201Created, result.Value),
+                ResultStatus.Unauthorized => Unauthorized(new { Message = result.Message }),
+                ResultStatus.NotFound => NotFound(new { Message = result.Message }),
+                ResultStatus.Conflict => Conflict(new { Message = result.Message }),
+                ResultStatus.PersistenceFailure => StatusCode(StatusCodes.Status500InternalServerError, new { Message = result.Message }),
+                _ => BadRequest(new { Message = result.Message })
             };
-
-            return failure;
         }
     }
 }
